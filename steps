@@ -1,0 +1,29 @@
+前提の接続情報
+
+Public DNS: ec2-98-80-205-89.compute-1.amazonaws.com
+ユーザー名: ec2-user
+秘密鍵ファイル: ssh-test-demo-key.pem（ダウンロード済み）
+
+ステップ1：Remote-SSH拡張機能をインストール
+VSCodeを開き、左端のアクティビティバーから拡張機能アイコン（四角が4つのマーク）をクリックします。検索ボックスに Remote - SSH と入力し、Microsoft製の「Remote - SSH」を「Install」します。インストールが完了すると、VSCodeの左下隅に緑色の >< のようなアイコンが表示されます。
+ステップ2：秘密鍵ファイルを配置
+ダウンロードした ssh-test-demo-key.pem を、C:\Users\<あなたのユーザー名>\.ssh\ フォルダに移動します。.ssh フォルダが無ければ新規作成してください。
+ステップ3：鍵ファイルの権限を設定（Windowsで最重要）
+このステップを飛ばすと接続時に UNPROTECTED PRIVATE KEY FILE! エラーで必ず失敗します。PowerShellを開いて、以下の2行を実行してください:
+powershellicacls "$env:USERPROFILE\.ssh\ssh-test-demo-key.pem" /inheritance:r
+icacls "$env:USERPROFILE\.ssh\ssh-test-demo-key.pem" /grant:r "$($env:USERNAME):(R)"
+一行目で他ユーザーへの継承権限を削除し、二行目で自分だけに読み取り権限を付与します。両方とも Successfully processed 1 files と表示されればOKです。
+ステップ4：SSH configファイルを作成
+VSCodeでコマンドパレットを開きます（Ctrl+Shift+P）。Remote-SSH: Open SSH Configuration File と入力して選択し、候補が出たら C:\Users\<ユーザー名>\.ssh\config を選びます。開いたファイルに以下を追記して保存してください（<ユーザー名> は実際のWindowsユーザー名に置き換え）:
+Host ssh-test-demo
+    HostName ec2-98-80-205-89.compute-1.amazonaws.com
+    User ec2-user
+    IdentityFile C:\Users\<ユーザー名>\.ssh\ssh-test-demo-key.pem
+ステップ5：VSCodeから接続（起動テスト）
+コマンドパレット（Ctrl+Shift+P）を開き、Remote-SSH: Connect to Host... を選択します。一覧に表示される ssh-test-demo をクリックすると、新しいVSCodeウィンドウが開きます。
+初回接続時にプラットフォームを聞かれたら Linux を選択し、フィンガープリントの確認ダイアログが出たら Continue を押します。接続が成功すると、新しいウィンドウの左下に SSH: ssh-test-demo と緑色で表示されます。
+ステップ6：接続の確認
+接続後、VSCodeのメニューから「ターミナル → 新しいターミナル」（Ctrl+@）を開くと、EC2上のシェル（[ec2-user@ip-... ~]$）が表示されます。ここで ls や pwd を打って反応があれば、接続テストは成功です。また「ファイル → フォルダーを開く」でEC2上のディレクトリ（例: /home/ec2-user）を開けば、リモートのファイルを直接編集できます。
+うまくいかない場合
+Permission denied (publickey) が出たらステップ3の権限設定を見直してください。接続がタイムアウトする場合はネットワーク側ですが、今回のインスタンスはセキュリティグループでSSHを全許可にしているので通常は問題ないはずです。10分以上応答が無い場合は、インスタンスが起動中（Running）のままか、Public DNSが変わっていないか（停止・再起動していないか）も確認してください。
+この手順で試してみて、途中でエラーが出たらそのメッセージを教えていただければ一緒に解決します。
