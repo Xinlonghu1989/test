@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HHグループ AI経営診断 ｜ 未対応ユースケースの実現方法論</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&family=Noto+Serif+JP:wght@600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --green:#0F6B4F; --green-deep:#0B5A41; --banner:#E3F0EA; --tint:#F7FAF8;
+  --ink:#1F2A2E; --gray:#3A4742; --sub:#5B6A64; --line:#D6E2DC;
+  --amber:#B07A1C; --amber-bg:#FBF3E0; --coral:#993C1D; --coral-bg:#FAECE7;
+  --purple:#534AB7; --purple-bg:#EEEDFE; --teal:#0F6E56; --teal-bg:#E1F5EE;
+  --paper:#FCFCFA;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Noto Sans JP',sans-serif;color:var(--ink);background:var(--paper);line-height:1.85;font-size:15px}
+.page{max-width:1060px;margin:0 auto;padding:0 32px 96px}
+
+header.doc{padding:64px 0 40px;border-bottom:3px solid var(--green)}
+.doc .kicker{font-size:12px;letter-spacing:.18em;color:var(--green);font-weight:700;margin-bottom:14px}
+.doc h1{font-family:'Noto Serif JP',serif;font-size:31px;font-weight:700;line-height:1.5;color:var(--ink)}
+.doc .lede{margin-top:18px;color:var(--gray);font-size:15px;max-width:820px}
+.doc .meta{margin-top:22px;font-size:12.5px;color:var(--sub);display:flex;gap:28px;flex-wrap:wrap}
+
+nav.toc{display:flex;gap:0;margin:40px 0 0;border:1px solid var(--line);border-radius:10px;overflow:hidden;flex-wrap:wrap}
+nav.toc a{flex:1;min-width:200px;padding:16px 20px;text-decoration:none;color:var(--ink);background:#fff;border-right:1px solid var(--line);transition:background .15s}
+nav.toc a:last-child{border-right:none}
+nav.toc a:hover{background:var(--tint)}
+nav.toc .n{font-family:'Noto Serif JP',serif;font-size:20px;color:var(--green);font-weight:700;display:block;line-height:1}
+nav.toc .t{font-size:13px;font-weight:500;display:block;margin-top:8px;line-height:1.5}
+
+section{margin-top:88px}
+.sec-head{display:flex;align-items:baseline;gap:18px;border-bottom:1px solid var(--line);padding-bottom:14px;margin-bottom:34px}
+.sec-head .num{font-family:'Noto Serif JP',serif;font-size:42px;font-weight:700;color:var(--green);line-height:1}
+.sec-head h2{font-family:'Noto Serif JP',serif;font-size:24px;font-weight:700}
+.sec-head .sub{font-size:13px;color:var(--sub);margin-left:auto;text-align:right}
+
+h3{font-size:16.5px;font-weight:700;color:var(--green-deep);margin:38px 0 14px}
+p.body{color:var(--gray);max-width:860px;margin-bottom:14px}
+strong{color:var(--ink)}
+
+.q-row{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin:26px 0}
+.q-card{background:#fff;border:1px solid var(--line);border-top:3px solid var(--green);border-radius:0 0 10px 10px;padding:22px 22px 20px}
+.q-card .q{font-family:'Noto Serif JP',serif;font-size:17.5px;font-weight:700;line-height:1.6}
+.q-card .a{margin-top:12px;font-size:13px;color:var(--sub)}
+.q-card .tag{display:inline-block;margin-top:14px;font-size:12px;font-weight:700;color:var(--green);background:var(--banner);padding:3px 12px;border-radius:999px}
+
+.brief{background:#fff;border:1px solid var(--line);border-radius:12px;padding:0;overflow:hidden;margin:26px 0;max-width:860px}
+.brief .bhead{background:var(--green);color:#fff;padding:14px 26px;font-weight:700;font-size:14.5px;letter-spacing:.04em}
+.brief ol{list-style:none;counter-reset:b}
+.brief li{counter-increment:b;display:flex;gap:18px;padding:16px 26px;border-bottom:1px solid var(--line);align-items:baseline}
+.brief li:last-child{border-bottom:none}
+.brief li::before{content:counter(b);font-family:'Noto Serif JP',serif;font-weight:700;font-size:18px;color:var(--green);min-width:22px}
+.brief .k{font-weight:700;min-width:180px}
+.brief .d{font-size:13.5px;color:var(--sub)}
+
+.principle{display:flex;gap:14px;background:var(--tint);border-left:3px solid var(--green);padding:16px 22px;margin:18px 0;max-width:860px}
+.principle .icon{font-weight:700;color:var(--green);white-space:nowrap;font-size:13.5px}
+.principle .txt{font-size:13.5px;color:var(--gray)}
+
+figure.arch{margin:30px 0;text-align:center}
+figure.arch svg{max-width:760px;width:100%;height:auto}
+figcaption{font-size:12.5px;color:var(--sub);margin-top:10px}
+
+.func{background:#fff;border:1px solid var(--line);border-radius:12px;margin:26px 0;overflow:hidden}
+.func .fhead{display:flex;align-items:center;gap:16px;padding:18px 26px;border-bottom:1px solid var(--line)}
+.func .fhead .fnum{font-family:'Noto Serif JP',serif;font-size:26px;font-weight:700;line-height:1;min-width:32px;text-align:center}
+.func .fhead .ftitle{font-size:17px;font-weight:700}
+.func .fhead .frole{margin-left:auto;font-size:12px;font-weight:700;padding:4px 14px;border-radius:999px}
+.func.f0 .fnum,.func.f0 .fhead{color:var(--teal)} .func.f0 .fhead{background:var(--teal-bg)} .func.f0 .frole{background:#fff;color:var(--teal)}
+.func.f1 .fnum,.func.f1 .fhead{color:var(--purple)} .func.f1 .fhead{background:var(--purple-bg)} .func.f1 .frole{background:#fff;color:var(--purple)}
+.func.f2 .fnum,.func.f2 .fhead{color:var(--coral)} .func.f2 .fhead{background:var(--coral-bg)} .func.f2 .frole{background:#fff;color:var(--coral)}
+.func.f3 .fnum,.func.f3 .fhead{color:var(--gray)} .func.f3 .fhead{background:#F1EFE8} .func.f3 .frole{background:#fff;color:var(--gray)}
+.func .fbody{padding:8px 0}
+.frow{display:grid;grid-template-columns:150px 1fr;gap:20px;padding:15px 26px;border-bottom:1px solid #EDF2EF}
+.frow:last-child{border-bottom:none}
+.frow .fk{font-size:12.5px;font-weight:700;color:var(--sub);letter-spacing:.05em;padding-top:2px}
+.frow .fv{font-size:14px;color:var(--ink)}
+.frow .fv .em{background:var(--banner);padding:1px 7px;border-radius:4px;font-weight:500;color:var(--green-deep)}
+.frow .fv .hl{background:var(--amber-bg);padding:1px 7px;border-radius:4px;font-weight:500;color:var(--amber)}
+.flow-chain{display:flex;flex-wrap:wrap;gap:6px;align-items:center;font-size:13px}
+.flow-chain .step{background:var(--tint);border:1px solid var(--line);border-radius:8px;padding:7px 13px;font-weight:500}
+.flow-chain .ai{background:var(--banner);border-color:var(--green);color:var(--green-deep)}
+.flow-chain .arr{color:var(--sub);font-weight:700}
+.report-spec{background:var(--tint);border-radius:10px;padding:16px 20px;margin-top:8px}
+.report-spec .rt{font-size:12.5px;font-weight:700;color:var(--green-deep);margin-bottom:8px}
+.report-spec ul{list-style:none;font-size:13px;color:var(--gray)}
+.report-spec li{padding:3px 0 3px 18px;position:relative}
+.report-spec li::before{content:"▸";position:absolute;left:0;color:var(--green)}
+
+table.src{width:100%;border-collapse:collapse;font-size:13.5px;margin:18px 0;background:#fff;border:1px solid var(--line);border-radius:10px;overflow:hidden}
+table.src th{background:var(--green);color:#fff;text-align:left;padding:11px 16px;font-weight:700;font-size:13px}
+table.src td{padding:11px 16px;border-bottom:1px solid #EDF2EF;vertical-align:top;color:var(--gray)}
+table.src tr:nth-child(even) td{background:var(--tint)}
+table.src td:first-child{font-weight:700;color:var(--ink);white-space:nowrap}
+table.src tr:last-child td{border-bottom:none}
+
+.pillars{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin:26px 0}
+.pillar{background:#fff;border:1px solid var(--line);border-radius:10px;padding:22px}
+.pillar.key{border:2px solid var(--amber);background:var(--amber-bg)}
+.pillar .pn{font-size:12px;font-weight:700;letter-spacing:.1em;color:var(--sub)}
+.pillar.key .pn{color:var(--amber)}
+.pillar .pt{font-family:'Noto Serif JP',serif;font-size:16.5px;font-weight:700;margin:8px 0 10px;line-height:1.55}
+.pillar .pd{font-size:13px;color:var(--sub)}
+.pillar.key .pd{color:#6B5313}
+
+.mapnote{display:flex;gap:26px;flex-wrap:wrap;font-size:12.5px;color:var(--sub);justify-content:center;margin-top:6px}
+.mapnote span{display:inline-flex;align-items:center;gap:7px}
+.sw{display:inline-block;width:26px;height:0;border-top:3px solid}
+
+footer.doc-foot{margin-top:90px;padding-top:22px;border-top:1px solid var(--line);font-size:12px;color:var(--sub);display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px}
+
+@media(max-width:820px){
+  .q-row,.pillars{grid-template-columns:1fr}
+  .frow{grid-template-columns:1fr;gap:6px}
+  nav.toc{flex-direction:column}
+  nav.toc a{border-right:none;border-bottom:1px solid var(--line)}
+}
+@media print{ body{font-size:12px} section{margin-top:48px} }
+</style>
+</head>
+<body>
+<div class="page">
+
+<header class="doc">
+  <div class="kicker">HHグループ AI経営診断 PoC ｜ 検討資料</div>
+  <h1>未対応ユースケースの実現方法論<br>― 生成AI × 事例ナレッジによるシナリオ分析設計 ―</h1>
+  <p class="lede">臨時ユースケース（突発事象・重要イベント変更・施設移転等の影響分析）を、数理モデルではなく<strong>生成AIの分析力と事例ナレッジ（RAG）</strong>で実現するための設計方針。経営層の問いから出発し、機能の全体構造、各機能の実現フロー、そして土台となる事業構造マップのドラフトまでを一気通貫で示す。</p>
+  <div class="meta"><span>作成：Deloitte Tohmatsu ｜ Data &amp; AI</span><span>位置づけ：議論用ドラフト（確定仕様ではない）</span></div>
+</header>
+
+<nav class="toc">
+  <a href="#s1"><span class="n">1</span><span class="t">経営層の3つの問いと<br>「経営ブリーフ」の型</span></a>
+  <a href="#s2"><span class="n">2</span><span class="t">4機能の全体構造<br>（トリガー×レイヤー）</span></a>
+  <a href="#s3"><span class="n">3</span><span class="t">各機能の実現フロー<br>（生成AI前提の設計）</span></a>
+  <a href="#s4"><span class="n">4</span><span class="t">実現の肝：<br>事業構造マップ（ドラフト）</span></a>
+</nav>
+
+<!-- ============ SECTION 1 ============ -->
+<section id="s1">
+  <div class="sec-head"><span class="num">1</span><h2>経営層の3つの問いと「経営ブリーフ」の型</h2><span class="sub">なぜ作るか ＝ 誰の何に答えるか</span></div>
+
+  <p class="body">機能から考えると設計は必ず膨らむ。出発点は役員の問いに置く。経営会議で役員が知りたいことは、突き詰めれば次の3つに集約される。</p>
+
+  <div class="q-row">
+    <div class="q-card"><div class="q">「何が起きた／<br>起きうるのか」</div><div class="a">計画とのズレ、外部環境の変化、突発事象。見えていなかったものに気づきたい。</div><span class="tag">気づく</span></div>
+    <div class="q-card"><div class="q">「うちにどれくらい<br>効くのか」</div><div class="a">どの事業に、どの経路で、どの程度の影響か。判断に足る確からしさで見極めたい。</div><span class="tag">見極める</span></div>
+    <div class="q-card"><div class="q">「どうすれば<br>いいのか」</div><div class="a">取りうる選択肢は何か。それぞれの得失は。過去はどう対処したのか。</div><span class="tag">打ち手を選ぶ</span></div>
+  </div>
+
+  <h3>設計原則：全機能の出力を「経営ブリーフ」1枚の型に固定する</h3>
+  <p class="body">定期診断も臨時分析も、役員に届く瞬間の形は同じにする。読み方を毎回学習させない。5つの要素を、この順で、1枚で。</p>
+
+  <div class="brief">
+    <div class="bhead">経営ブリーフ ― 5つの構成要素（出力の標準型）</div>
+    <ol>
+      <li><span class="k">何が起きたか</span><span class="d">事実・検知内容。必ず出典付き（IR・報道・社内データの参照箇所を明示）</span></li>
+      <li><span class="k">どう波及するか</span><span class="d">要因 → 事業 → KPI の因果チェーン。生成AIによるロジカルなシナリオ分析の核心</span></li>
+      <li><span class="k">影響はどの程度か</span><span class="d">点推定しない。「方向 × 大きさのオーダー × 確度」の幅で示し、根拠を添える</span></li>
+      <li><span class="k">過去の類似局面</span><span class="d">事例ナレッジ基盤から自動添付。「あの時はこうだった」が判断の相場観になる</span></li>
+      <li><span class="k">取りうる打ち手</span><span class="d">選択肢の網羅とメリット・デメリット。決めるのは人、揃えるのはAI</span></li>
+    </ol>
+  </div>
+
+  <div class="principle"><span class="icon">UIの原則</span><span class="txt">画面は増やさない。役員が見るのは既存の「今日の論点」1画面。臨時分析が走ったら、そこに速報として割り込む。タブを増やすたびに、役員は見なくなる。</span></div>
+</section>
+
+<!-- ============ SECTION 2 ============ -->
+<section id="s2">
+  <div class="sec-head"><span class="num">2</span><h2>4機能の全体構造（トリガー × レイヤー）</h2><span class="sub">機能は並列ではなく、階層で捉える</span></div>
+
+  <p class="body">検討対象の4機能は、並列のメニューではない。<strong>トリガー（いつ動くか）とレイヤー（何を支えるか）</strong>で捉えると、明確な構造を持つ。①定期診断と②臨時診断は<strong>同一の診断パイプラインのトリガー違い</strong>であり、⓪常時センシングは②の発火装置、③事例ナレッジ基盤は①②の両方に燃料を送る共有基盤である。</p>
+
+  <figure class="arch">
+    <svg viewBox="0 0 760 460" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="4機能のレイヤー構造図">
+      <defs><marker id="ar" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M2 1L8 5L2 9" fill="none" stroke="#5B6A64" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></marker></defs>
+      <rect x="180" y="30" width="400" height="72" rx="12" fill="#E1F5EE" stroke="#0F6E56" stroke-width="1"/>
+      <text x="380" y="60" text-anchor="middle" font-size="16" font-weight="700" fill="#085041" font-family="Noto Sans JP">⓪ 常時センシング</text>
+      <text x="380" y="84" text-anchor="middle" font-size="12.5" fill="#0F6E56" font-family="Noto Sans JP">KPI進捗・外部重要指標の定常監視（スケジュール駆動）</text>
+
+      <rect x="60" y="180" width="300" height="96" rx="12" fill="#EEEDFE" stroke="#534AB7" stroke-width="1"/>
+      <text x="210" y="212" text-anchor="middle" font-size="16" font-weight="700" fill="#3C3489" font-family="Noto Sans JP">① 定期診断</text>
+      <text x="210" y="236" text-anchor="middle" font-size="12.5" fill="#534AB7" font-family="Noto Sans JP">事業計画の整合性・リスク精査</text>
+      <text x="210" y="256" text-anchor="middle" font-size="12" fill="#7F77DD" font-family="Noto Sans JP">計画提出のタイミングで駆動</text>
+
+      <rect x="400" y="180" width="300" height="96" rx="12" fill="#FAECE7" stroke="#993C1D" stroke-width="1"/>
+      <text x="550" y="212" text-anchor="middle" font-size="16" font-weight="700" fill="#712B13" font-family="Noto Sans JP">② 臨時診断</text>
+      <text x="550" y="236" text-anchor="middle" font-size="12.5" fill="#993C1D" font-family="Noto Sans JP">急変・突発事象の影響度シナリオ分析</text>
+      <text x="550" y="256" text-anchor="middle" font-size="12" fill="#D85A30" font-family="Noto Sans JP">⓪の急変検知・人の起動で発火</text>
+
+      <rect x="60" y="356" width="640" height="76" rx="12" fill="#F1EFE8" stroke="#888780" stroke-width="1"/>
+      <text x="380" y="388" text-anchor="middle" font-size="16" font-weight="700" fill="#444441" font-family="Noto Sans JP">③ 事例ナレッジ基盤（RAG）</text>
+      <text x="380" y="412" text-anchor="middle" font-size="12.5" fill="#5F5E5A" font-family="Noto Sans JP">外部の類似イベント事例（主）＋自社記録・意思決定ログ（従）を ①② の出力に自動添付</text>
+
+      <line x1="280" y1="104" x2="230" y2="176" stroke="#5B6A64" stroke-width="1.4" marker-end="url(#ar)"/>
+      <line x1="480" y1="104" x2="530" y2="176" stroke="#993C1D" stroke-width="1.8" marker-end="url(#ar)"/>
+      <text x="540" y="140" font-size="11.5" fill="#993C1D" font-family="Noto Sans JP" font-weight="500">急変検知で自動発火</text>
+      <line x1="210" y1="352" x2="210" y2="282" stroke="#5B6A64" stroke-width="1.4" marker-end="url(#ar)"/>
+      <line x1="550" y1="352" x2="550" y2="282" stroke="#5B6A64" stroke-width="1.4" marker-end="url(#ar)"/>
+      <text x="380" y="322" text-anchor="middle" font-size="11.5" fill="#5B6A64" font-family="Noto Sans JP">類似事例・相場観を供給</text>
+    </svg>
+    <figcaption>①と②は中身のパイプラインがほぼ同一。観点プロンプトと入力の違いとして実装でき、開発量を大きく圧縮できる。</figcaption>
+  </figure>
+
+  <div class="principle"><span class="icon">③の位置づけ</span><span class="txt">事例ナレッジは「学習コーナー」という行き先（タブ）にしない。役員は過去事例を勉強しには行かない。価値が出るのは、①②の診断結果の横に「過去の類似局面ではこうだった」が<strong>自動で添えられる瞬間</strong>である。よって③は表のUIではなく裏の基盤として設計する。</span></div>
+</section>
+
+<!-- ============ SECTION 3 ============ -->
+<section id="s3">
+  <div class="sec-head"><span class="num">3</span><h2>各機能の実現フロー（生成AI前提の設計）</h2><span class="sub">トリガー → 食べる情報 → 仕組み → 出すもの</span></div>
+
+  <p class="body">各機能を統一フォーマットで記述する。数理モデルによる精緻なシミュレーションではなく、<strong>構造化された自社知識（事業構造マップ）× 事例の相場観（RAG）× 生成AIの因果推論</strong>で「ロジカルなシナリオ分析」を組み立てるのが基本思想である。</p>
+
+  <!-- Function 0 -->
+  <div class="func f0">
+    <div class="fhead"><span class="fnum">⓪</span><span class="ftitle">常時センシング</span><span class="frole">センサー ｜ スケジュール駆動</span></div>
+    <div class="fbody">
+      <div class="frow"><span class="fk">トリガー</span><span class="fv">スケジュール（日次／週次の自動実行）</span></div>
+      <div class="frow"><span class="fk">食べる情報</span><span class="fv">社内KPI実績（マスキング）、公開外部指標（為替・金利・訪日客数・地価等。<span class="em">Web / 公開APIから自動取得</span>）</span></div>
+      <div class="frow"><span class="fk">仕組み</span><span class="fv"><div class="flow-chain"><span class="step">指標の自動取得</span><span class="arr">→</span><span class="step">閾値・変化率ルールで異常検知（定型ロジック）</span><span class="arr">→</span><span class="step ai">LLM：「何が普段と違うか」を一言で言語化</span></div></span></div>
+      <div class="frow"><span class="fk">出すもの</span><span class="fv">異常フラグ＋変化サマリ（ダッシュボード表示）。<span class="hl">急変検知時は ② 臨時診断を自動発火</span></span></div>
+    </div>
+  </div>
+
+  <!-- Function 1 -->
+  <div class="func f1">
+    <div class="fhead"><span class="fnum">①</span><span class="ftitle">定期診断 ― 事業計画のHD横断精査</span><span class="frole">診断パイプライン ｜ 定期駆動</span></div>
+    <div class="fbody">
+      <div class="frow"><span class="fk">トリガー</span><span class="fv">各社の事業計画 提出タイミング</span></div>
+      <div class="frow"><span class="fk">食べる情報</span><span class="fv">提出された事業計画（文書）、前回計画・前回診断結果、最新外部環境データ（Web取得）、<span class="hl">事業構造マップ</span>、③事例ナレッジ基盤</span></div>
+      <div class="frow"><span class="fk">仕組み</span><span class="fv"><div class="flow-chain"><span class="step ai">(1) 外部整合性チェック：計画前提 vs 最新外部環境をLLMが突合</span><span class="arr">→</span><span class="step ai">(2) 内部論理性チェック：目標とアクションの因果、前回からの観点変化・トーン変化</span><span class="arr">→</span><span class="step ai">(3) SWOT・リスク抽出</span><span class="arr">→</span><span class="step">(4) 類似事例照会（RAG）</span><span class="arr">→</span><span class="step ai">(5) ブリーフ生成</span></div><div style="margin-top:10px;font-size:12.5px;color:var(--sub)">※ 各チェックは「観点プロンプト」として実装。整合性・論理性・SWOTは同一チェーンのプロンプト差分であり、追加観点の拡張が容易。</div></span></div>
+      <div class="frow"><span class="fk">出すもの</span><span class="fv"><div class="report-spec"><div class="rt">計画診断ブリーフ（経営ブリーフ型）に入る要素</div><ul><li>計画の前提と外部環境の乖離ポイント（例：「金利前提×%は直近の市場水準と乖離」）</li><li>計画内部の論理ギャップ（目標とアクションの不整合、前回計画からの観点の変化）</li><li>SWOT・主要リスクと重要度</li><li>過去類似の計画局面での実際の結果（③から添付）</li><li>精査すべき論点の推奨（会議アジェンダ候補）</li></ul></div></span></div>
+    </div>
+  </div>
+
+  <!-- Function 2 -->
+  <div class="func f2">
+    <div class="fhead"><span class="fnum">②</span><span class="ftitle">臨時診断 ― 急変・突発事象の影響度シナリオ分析</span><span class="frole">診断パイプライン ｜ イベント駆動</span></div>
+    <div class="fbody">
+      <div class="frow"><span class="fk">トリガー</span><span class="fv">⓪の急変検知（自動）、または人の手動起動（「○○が起きた。影響を見たい」）</span></div>
+      <div class="frow"><span class="fk">食べる情報</span><span class="fv">トリガーイベントの内容、<span class="hl">事業構造マップ</span>、直近KPI・計画値、類似事例（③から<span class="em">構造的類似</span>で検索）、当該イベントの最新報道（Web検索で補完）</span></div>
+      <div class="frow"><span class="fk">仕組み</span><span class="fv"><div class="flow-chain"><span class="step ai">(1) イベントの構造化：何が・どこで・どの規模で</span><span class="arr">→</span><span class="step ai">(2) 事業構造マップ上で影響経路をトレース：要因→事業→KPIの因果チェーン生成</span><span class="arr">→</span><span class="step">(3) 類似事例から影響の相場観を取得</span><span class="arr">→</span><span class="step ai">(4) 影響度を「方向×オーダー×確度」で記述</span><span class="arr">→</span><span class="step ai">(5) 打ち手選択肢の網羅生成</span></div></span></div>
+      <div class="frow"><span class="fk">出すもの</span><span class="fv"><div class="report-spec"><div class="rt">臨時影響分析レポートに入るべき要素</div><ul><li>(a) イベント概要と出典</li><li>(b) 影響波及チェーンの図解（どの経路で・どの事業に効くか）</li><li>(c) 影響度：方向 × 大きさのオーダー × 確度、＋根拠</li><li>(d) 過去類似事例との比較表（「コロナ時の甲子園無観客では…」）</li><li>(e) 打ち手の選択肢とメリット・デメリット</li><li>(f) 今後モニタリングすべき指標（⓪への逆連携）</li></ul></div></span></div>
+    </div>
+  </div>
+
+  <!-- Function 3 -->
+  <div class="func f3">
+    <div class="fhead"><span class="fnum">③</span><span class="ftitle">事例ナレッジ基盤（RAG）― 外部事例が主役</span><span class="frole">共有基盤 ｜ 常時供給</span></div>
+    <div class="fbody">
+      <div class="frow"><span class="fk">トリガー</span><span class="fv">常時（①②から照会）＋ 事例の収集・登録サイクル（週次等）</span></div>
+      <div class="frow"><span class="fk">食べる情報</span><span class="fv"><strong>外部事例が主（体感 8〜9割）</strong>：コロナ発生時に各社がどう影響を受けどう対応したか、五輪・万博の影響、大規模商業施設の移転が鉄道運輸に与えた影響、災害時の他社対応 等。自社の記録・意思決定ログは従として蓄積</span></div>
+      <div class="frow"><span class="fk">仕組み</span><span class="fv"><div class="flow-chain"><span class="step">(1) イベントカタログ定義：収集すべき事象タイプを先に決める</span><span class="arr">→</span><span class="step">(2) ソースから収集（下表）</span><span class="arr">→</span><span class="step ai">(3) LLMで構造化：事象タイプ／影響事業／規模／打ち手／結果 のメタデータ付与</span><span class="arr">→</span><span class="step">(4) 人がレビューして登録</span><span class="arr">→</span><span class="step ai">(5) 構造的類似で検索・供給</span></div><div style="margin-top:10px;font-size:12.5px;color:var(--sub)">※ 構造的類似の例：「台風」の文字一致ではなく、「大規模集客施設の一時閉鎖」という構造で、コロナ時の甲子園無観客・USJ休業・百貨店休業を横断的に引き当てる。</div></span></div>
+      <div class="frow"><span class="fk">出すもの</span><span class="fv">①②の出力に自動添付される類似事例パッケージ（事例概要／当時の影響／取られた対応／結果）。単独UIは持たない（閲覧口のみ）</span></div>
+    </div>
+  </div>
+
+  <h3>事例ナレッジの網羅性 ― どこから取り、どこまで充実させるか（本基盤の成否を分ける）</h3>
+  <p class="body">この基盤の価値は<strong>検索技術ではなく事例の網羅性で決まる</strong>。やみくもに集めるのではなく、阪急阪神の事業構造に効く「事象タイプのカタログ」を先に定義し、タイプごとに優先度をつけて計画的に収集する。主要な取得元は以下。</p>
+
+  <table class="src">
+    <tr><th style="width:200px">取得元</th><th>取れる事例・情報</th><th style="width:190px">充実度の見立て</th></tr>
+    <tr><td>有価証券報告書・決算説明資料（EDINET／各社IR）</td><td>コロナ・災害・イベント時に各社が受けた影響の定量記述（減収額・稼働率）と対応策。鉄道・不動産・ホテル各社の横断比較が可能</td><td>◎ 最も信頼でき定量的。まずここから</td></tr>
+    <tr><td>新聞・業界紙データベース（日経テレコン等）</td><td>イベント発生時の時系列報道、各社対応の速報。施設移転・開業と乗降客への影響などローカル事例</td><td>◎ 網羅性の主力。ライセンス要確認</td></tr>
+    <tr><td>官公庁統計・白書（国交省 鉄道輸送統計、観光庁 宿泊統計 等）</td><td>イベント前後の輸送量・宿泊・訪日客の実数変化。影響の「オーダー感」の裏付けに必須</td><td>◎ 無償・構造化済み。オーダー根拠の柱</td></tr>
+    <tr><td>他社・業界団体の公表資料（鉄道各社ニュースリリース、民鉄協 等）</td><td>ダイヤ改正・値上げ・大規模開発の影響発表、災害時対応の実例</td><td>○ 個別事例の深掘りに有効</td></tr>
+    <tr><td>シンクタンク・学術レポート</td><td>万博・IR・新幹線延伸等の経済効果試算、施設移転の交通影響研究</td><td>○ 将来イベントの事前試算に有効</td></tr>
+    <tr><td>自社内記録・意思決定ログ</td><td>過去の経営会議での判断と結果。②の意思決定ログ機能から継続蓄積</td><td>△ 初期は薄い。使うほど蓄積される設計</td></tr>
+  </table>
+
+  <div class="principle"><span class="icon">収集の進め方</span><span class="txt">PoCでは「コロナ」「大阪・関西万博」「台風21号（関空閉鎖）」「大規模施設の開業・移転」など<strong>代表5〜7イベント × 主要各社</strong>に絞って深く構造化し、検索が「効く」ことを実証する。網羅拡大（事象タイプの拡充・継続収集の運用）は本番フェーズで設計する。ライセンス（新聞DB等）の扱いは早期に確認が必要。</span></div>
+</section>
+
+<!-- ============ SECTION 4 ============ -->
+<section id="s4">
+  <div class="sec-head"><span class="num">4</span><h2>実現の肝 ― 最重要は「事業構造マップ」</h2><span class="sub">生成AIを阪急阪神固有の分析者にする土台</span></div>
+
+  <div class="pillars">
+    <div class="pillar key"><div class="pn">肝 1 ｜ 最重要</div><div class="pt">事業構造マップ</div><div class="pd">要因→事業→KPIの因果関係を構造化した自社知識。これがないとLLMのシナリオ分析は一般論に堕ちる。逆にこれがあれば、①の整合性診断も②の影響分析も「阪急阪神固有の答え」になる。最初のスプリントで作るべきはこれ。</div></div>
+    <div class="pillar"><div class="pn">肝 2</div><div class="pt">影響は「幅」で出す</div><div class="pd">数理モデルでない以上、精密な金額は出せないし、出すと信頼を失う。「方向 × 大きさのオーダー × 確度」の3点セットで示し、根拠を必ず添える。生成AIの弱点を仕様で守る設計。</div></div>
+    <div class="pillar"><div class="pn">肝 3</div><div class="pt">構造的類似の事例設計</div><div class="pd">表面の文字一致ではなく「事象の構造」で類似事例を引く。事例登録時のメタデータ設計（事象タイプ／影響事業／打ち手／結果）が検索品質を決める。</div></div>
+  </div>
+
+  <h3>事業構造マップ ― ドラフト（公開情報ベースのたたき台）</h3>
+  <p class="body">外部要因層 → 事業層 → KPI層 の3層で、影響の<strong>向き（＋/−）と強さ（強/中/弱）</strong>を持つ因果パスとして定義する。以下は公開セグメント情報から起こした代表パスのドラフト。<strong>PoCでは代表10〜15本に絞り、網羅は本番で拡張</strong>する。線の色が向き、太さが強さを表す。</p>
+
+  <figure class="arch">
+    <svg viewBox="0 0 980 650" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="事業構造マップのドラフト">
+      <defs><marker id="ar2" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M2 1L8 5L2 9" fill="none" stroke="context-stroke" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></marker></defs>
+
+      <text x="120" y="34" text-anchor="middle" font-size="13.5" font-weight="700" fill="#5B6A64" font-family="Noto Sans JP">外部要因層</text>
+      <text x="490" y="34" text-anchor="middle" font-size="13.5" font-weight="700" fill="#5B6A64" font-family="Noto Sans JP">事業層（公開セグメント）</text>
+      <text x="866" y="34" text-anchor="middle" font-size="13.5" font-weight="700" fill="#5B6A64" font-family="Noto Sans JP">KPI層</text>
+
+      <!-- External factor nodes x=30 w=180 -->
+      <g font-family="Noto Sans JP" font-size="13" font-weight="500">
+        <rect x="30" y="56"  width="180" height="40" rx="8" fill="#E6F1FB" stroke="#185FA5"/><text x="120" y="81"  text-anchor="middle" fill="#0C447C">金利の上昇</text>
+        <rect x="30" y="130" width="180" height="40" rx="8" fill="#E6F1FB" stroke="#185FA5"/><text x="120" y="155" text-anchor="middle" fill="#0C447C">為替（円安）</text>
+        <rect x="30" y="204" width="180" height="40" rx="8" fill="#E6F1FB" stroke="#185FA5"/><text x="120" y="229" text-anchor="middle" fill="#0C447C">訪日客数の増減</text>
+        <rect x="30" y="278" width="180" height="40" rx="8" fill="#E6F1FB" stroke="#185FA5"/><text x="120" y="303" text-anchor="middle" fill="#0C447C">沿線人口・通勤動態</text>
+        <rect x="30" y="352" width="180" height="40" rx="8" fill="#E6F1FB" stroke="#185FA5"/><text x="120" y="377" text-anchor="middle" fill="#0C447C">資材・労務費の上昇</text>
+        <rect x="30" y="426" width="180" height="40" rx="8" fill="#E6F1FB" stroke="#185FA5"/><text x="120" y="451" text-anchor="middle" fill="#0C447C">気象・災害</text>
+        <rect x="30" y="500" width="180" height="40" rx="8" fill="#E6F1FB" stroke="#185FA5"/><text x="120" y="525" text-anchor="middle" fill="#0C447C">大型イベント（万博等）</text>
+        <rect x="30" y="574" width="180" height="40" rx="8" fill="#E6F1FB" stroke="#185FA5"/><text x="120" y="599" text-anchor="middle" fill="#0C447C">大規模施設の開業・移転</text>
+      </g>
+
+      <!-- Business nodes x=400 w=180 -->
+      <g font-family="Noto Sans JP" font-size="13" font-weight="500">
+        <rect x="400" y="80"  width="180" height="42" rx="8" fill="#E3F0EA" stroke="#0F6B4F"/><text x="490" y="106" text-anchor="middle" fill="#085041" font-weight="700">都市交通</text>
+        <rect x="400" y="176" width="180" height="42" rx="8" fill="#E3F0EA" stroke="#0F6B4F"/><text x="490" y="202" text-anchor="middle" fill="#085041" font-weight="700">不動産（開発・賃貸）</text>
+        <rect x="400" y="272" width="180" height="42" rx="8" fill="#E3F0EA" stroke="#0F6B4F"/><text x="490" y="298" text-anchor="middle" fill="#085041" font-weight="700">エンタテインメント</text>
+        <rect x="400" y="368" width="180" height="42" rx="8" fill="#E3F0EA" stroke="#0F6B4F"/><text x="490" y="394" text-anchor="middle" fill="#085041" font-weight="700">ホテル・旅行</text>
+        <rect x="400" y="464" width="180" height="42" rx="8" fill="#E3F0EA" stroke="#0F6B4F"/><text x="490" y="490" text-anchor="middle" fill="#085041" font-weight="700">国際輸送</text>
+      </g>
+
+      <!-- KPI nodes x=780 w=172 -->
+      <g font-family="Noto Sans JP" font-size="12.5" font-weight="500">
+        <rect x="780" y="66"  width="172" height="38" rx="8" fill="#F7FAF8" stroke="#5B6A64"/><text x="866" y="90"  text-anchor="middle" fill="#3A4742">運輸収入・乗降客数</text>
+        <rect x="780" y="152" width="172" height="38" rx="8" fill="#F7FAF8" stroke="#5B6A64"/><text x="866" y="176" text-anchor="middle" fill="#3A4742">開発利益・賃貸NOI</text>
+        <rect x="780" y="238" width="172" height="38" rx="8" fill="#F7FAF8" stroke="#5B6A64"/><text x="866" y="262" text-anchor="middle" fill="#3A4742">集客数・興行収入</text>
+        <rect x="780" y="324" width="172" height="38" rx="8" fill="#F7FAF8" stroke="#5B6A64"/><text x="866" y="348" text-anchor="middle" fill="#3A4742">稼働率・RevPAR</text>
+        <rect x="780" y="410" width="172" height="38" rx="8" fill="#F7FAF8" stroke="#5B6A64"/><text x="866" y="434" text-anchor="middle" fill="#3A4742">取扱高・貨物量</text>
+        <rect x="780" y="496" width="172" height="46" rx="8" fill="#0F6B4F"/><text x="866" y="524" text-anchor="middle" fill="#fff" font-weight="700">連結 営業利益</text>
+      </g>
+
+      <!-- Edges: negative=coral #C0532F, positive=green #1D9E75. width: strong 3, mid 2, weak 1 -->
+      <!-- 金利↑ -> 不動産 −強 -->
+      <path d="M212 76 C 320 76, 320 197, 398 197" fill="none" stroke="#C0532F" stroke-width="3" marker-end="url(#ar2)"/>
+      <!-- 金利↑ -> 都市交通 −弱 -->
+      <path d="M212 88 C 300 88, 320 101, 398 101" fill="none" stroke="#C0532F" stroke-width="1" marker-end="url(#ar2)"/>
+      <!-- 円安 -> 訪日 +強 (factor->factor) -->
+      <path d="M120 172 L 120 200" fill="none" stroke="#1D9E75" stroke-width="3" marker-end="url(#ar2)"/>
+      <!-- 訪日 -> ホテル +強 -->
+      <path d="M212 224 C 320 224, 310 389, 398 389" fill="none" stroke="#1D9E75" stroke-width="3" marker-end="url(#ar2)"/>
+      <!-- 訪日 -> エンタメ +中 -->
+      <path d="M212 236 C 300 236, 320 293, 398 293" fill="none" stroke="#1D9E75" stroke-width="2" marker-end="url(#ar2)"/>
+      <!-- 訪日 -> 都市交通 +中 -->
+      <path d="M212 212 C 300 212, 320 113, 398 113" fill="none" stroke="#1D9E75" stroke-width="2" marker-end="url(#ar2)"/>
+      <!-- 沿線人口 -> 都市交通 強 -->
+      <path d="M212 292 C 310 292, 300 95, 398 95" fill="none" stroke="#1D9E75" stroke-width="3" marker-end="url(#ar2)"/>
+      <!-- 沿線人口 -> 不動産 中 -->
+      <path d="M212 304 C 300 304, 320 209, 398 209" fill="none" stroke="#1D9E75" stroke-width="2" marker-end="url(#ar2)"/>
+      <!-- 資材労務 -> 不動産 −強 -->
+      <path d="M212 366 C 310 366, 310 203, 398 203" fill="none" stroke="#C0532F" stroke-width="3" marker-end="url(#ar2)"/>
+      <!-- 資材労務 -> 都市交通(保守) −中 -->
+      <path d="M212 378 C 330 378, 330 107, 398 107" fill="none" stroke="#C0532F" stroke-width="2" marker-end="url(#ar2)"/>
+      <!-- 災害 -> 都市交通 −強 -->
+      <path d="M212 440 C 340 440, 340 119, 398 119" fill="none" stroke="#C0532F" stroke-width="3" marker-end="url(#ar2)"/>
+      <!-- 災害 -> ホテル −中 -->
+      <path d="M212 452 C 300 452, 320 401, 398 401" fill="none" stroke="#C0532F" stroke-width="2" marker-end="url(#ar2)"/>
+      <!-- 大型イベント -> 交通 +強 -->
+      <path d="M212 514 C 350 514, 350 125, 398 125" fill="none" stroke="#1D9E75" stroke-width="3" marker-end="url(#ar2)"/>
+      <!-- 大型イベント -> ホテル +強 -->
+      <path d="M212 526 C 320 526, 320 407, 398 407" fill="none" stroke="#1D9E75" stroke-width="3" marker-end="url(#ar2)"/>
+      <!-- 施設移転 -> 都市交通 ±強 -->
+      <path d="M212 594 C 360 594, 362 131, 398 131" fill="none" stroke="#B07A1C" stroke-width="3" stroke-dasharray="7 4" marker-end="url(#ar2)"/>
+
+      <!-- Business -> KPI -->
+      <path d="M582 101 L 778 85"  fill="none" stroke="#5B6A64" stroke-width="1.6" marker-end="url(#ar2)"/>
+      <path d="M582 197 L 778 171" fill="none" stroke="#5B6A64" stroke-width="1.6" marker-end="url(#ar2)"/>
+      <path d="M582 293 L 778 257" fill="none" stroke="#5B6A64" stroke-width="1.6" marker-end="url(#ar2)"/>
+      <path d="M582 389 L 778 343" fill="none" stroke="#5B6A64" stroke-width="1.6" marker-end="url(#ar2)"/>
+      <path d="M582 485 L 778 429" fill="none" stroke="#5B6A64" stroke-width="1.6" marker-end="url(#ar2)"/>
+      <!-- KPI -> 営業利益 -->
+      <path d="M866 104 L 866 148" fill="none" stroke="#5B6A64" stroke-width="1.2" marker-end="url(#ar2)"/>
+      <path d="M866 190 L 866 234" fill="none" stroke="#5B6A64" stroke-width="1.2" marker-end="url(#ar2)"/>
+      <path d="M866 276 L 866 320" fill="none" stroke="#5B6A64" stroke-width="1.2" marker-end="url(#ar2)"/>
+      <path d="M866 362 L 866 406" fill="none" stroke="#5B6A64" stroke-width="1.2" marker-end="url(#ar2)"/>
+      <path d="M866 448 L 866 492" fill="none" stroke="#5B6A64" stroke-width="1.2" marker-end="url(#ar2)"/>
+    </svg>
+    <div class="mapnote">
+      <span><span class="sw" style="border-color:#1D9E75"></span>プラスの影響</span>
+      <span><span class="sw" style="border-color:#C0532F"></span>マイナスの影響</span>
+      <span><span class="sw" style="border-color:#B07A1C;border-top-style:dashed"></span>±両方向（事象による）</span>
+      <span>線の太さ ＝ 影響の強さ（強・中・弱）</span>
+    </div>
+    <figcaption>代表因果パスのドラフト（公開情報ベース）。例：金利上昇 → 不動産開発（−強）／都市交通（−弱）、訪日客増 → ホテル（＋強）・エンタメ（＋中）・都市交通（＋中）。各パスの妥当性・重み・欠落パスは先方との議論で確定する。</figcaption>
+  </figure>
+
+  <h3>このマップの使われ方（②臨時診断での動き）</h3>
+  <p class="body">例えば「大規模施設の移転」がトリガーされた場合：LLMはこのマップの<strong>「施設移転 → 都市交通（±）→ 運輸収入 → 営業利益」の経路を根拠として引用しながら</strong>、③の類似事例（過去の大型施設開業時に近隣路線の乗降客がどう変化したか）で相場観を補い、「影響の方向・オーダー・確度」を記述する。マップが根拠の骨格、事例が肉付け、LLMが文章化と論理接続を担う——これが数理モデルに頼らない「ロジカルなシナリオ分析」の実装形である。</p>
+
+  <div class="principle"><span class="icon">次の一歩</span><span class="txt">Sprint 内で (1) このマップの因果パスを先方とレビューして初版確定、(2) 代表イベント5〜7件の事例構造化、(3) ②臨時診断のプロトタイプ1本（例：施設移転シナリオ）をエンドツーエンドで動かす——の3点を推奨。</span></div>
+</section>
+
+<footer class="doc-foot">
+  <span>HHグループ AI経営診断 PoC ｜ 未対応ユースケースの実現方法論（議論用ドラフト）</span>
+  <span>Deloitte Tohmatsu ｜ Data &amp; AI</span>
+</footer>
+
+</div>
+</body>
+</html>
