@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>AI経営診断 前段整理</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700;900&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#212121; --sub:#4E4E4E; --faint:#8A8A8A;
+    --green:#86BC25; --green-dark:#5E8A12; --green-tint:#F1F7E3;
+    --dark:#2B2B2B; --card:#F6F6F6; --line:#E2E2E2;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{background:#DADDE0;font-family:"Noto Sans JP","Yu Gothic","Hiragino Kaku Gothic ProN",sans-serif;color:var(--ink);
+       display:flex;flex-direction:column;align-items:center;gap:36px;padding:36px 0;}
+  .slide{width:1280px;height:720px;background:#FFF;position:relative;box-shadow:0 8px 28px rgba(0,0,0,.18);
+         padding:28px 46px 30px;overflow:hidden;flex-shrink:0;}
+  .kicker{font-size:11px;letter-spacing:.06em;color:var(--faint);font-weight:500;}
+  h1{font-size:18px;font-weight:700;line-height:1.35;margin-top:5px;letter-spacing:.01em;}
+  h1 .em{color:var(--green-dark);}
+  .pageno{position:absolute;right:46px;bottom:14px;font-size:10px;color:var(--faint);}
+  .copyright{position:absolute;left:46px;bottom:14px;font-size:9px;color:#B5B5B5;}
+
+  /* ---------- Slide 1 : loop chart ---------- */
+  .axis1-tag{display:inline-block;margin-top:9px;background:var(--dark);color:#FFF;font-size:11px;font-weight:700;
+       border-radius:4px;padding:4px 12px;letter-spacing:.05em;}
+  .axis1-tag span{color:var(--green);margin-right:6px;}
+  .loop-wrap{position:relative;margin-top:25px;}
+  .loopback{position:absolute;top:-24px;left:200px;right:150px;height:24px;
+            border:1.5px solid #BCBCBC;border-bottom:none;border-radius:12px 12px 0 0;}
+  .loopback .head{position:absolute;left:-5.5px;bottom:-7px;width:0;height:0;
+            border-left:5px solid transparent;border-right:5px solid transparent;border-top:8px solid #BCBCBC;}
+  .loopback .lbl{position:absolute;left:50%;top:-8px;transform:translateX(-50%);background:#FFF;
+            padding:0 14px;font-size:10.5px;color:var(--sub);font-weight:500;white-space:nowrap;}
+  .stages{display:grid;grid-template-columns:430px 36px 1fr 28px 1fr;align-items:stretch;}
+  .par-col{display:flex;flex-direction:column;gap:12px;position:relative;}
+  .par-lbl{position:absolute;left:-14px;top:0;bottom:0;width:0;border-left:1.5px solid var(--green);}
+  .par-lbl i{position:absolute;left:-9px;top:50%;transform:translate(-50%,-50%) rotate(180deg);
+       writing-mode:vertical-rl;font-style:normal;font-size:9.5px;color:var(--green-dark);font-weight:700;letter-spacing:.14em;white-space:nowrap;}
+  .converge{position:relative;}
+  .converge svg{position:absolute;inset:0;width:100%;height:100%;}
+  .chev{display:flex;align-items:center;justify-content:center;color:var(--green);font-size:16px;}
+  .stage{display:flex;flex-direction:column;}
+  .s-head{background:var(--dark);color:#FFF;border-radius:6px 6px 0 0;padding:6px 12px 5px;
+          display:flex;align-items:baseline;gap:8px;}
+  .s-num{font-size:16px;font-weight:900;color:var(--green);line-height:1;}
+  .s-name{font-size:15px;font-weight:700;letter-spacing:.04em;}
+  .s-time{font-size:9.5px;color:#C9C9C9;margin-left:auto;font-weight:500;}
+  .s-body{background:var(--card);border-radius:0 0 6px 6px;padding:7px 12px 8px;flex:1;
+          display:flex;flex-direction:column;}
+  .s-q{font-size:11px;font-weight:700;color:var(--green-dark);line-height:1.4;margin-bottom:6px;}
+  .s-q::before{content:"\201C";margin-right:1px;} .s-q::after{content:"\201D";margin-left:1px;}
+  .s-todo{list-style:none;display:flex;flex-direction:column;gap:5px;}
+  .s-todo li{font-size:10.5px;line-height:1.45;color:var(--sub);padding-left:11px;position:relative;}
+  .s-todo li::before{content:"";position:absolute;left:0;top:6.5px;width:4px;height:4px;background:var(--green);border-radius:1px;}
+  .s-todo b{color:var(--ink);}
+  .watch{display:grid;grid-template-columns:1fr 1fr;gap:6px;}
+  .watch div{background:#FFF;border:1px solid var(--line);border-radius:5px;padding:4px 7px 5px;}
+  .watch b{display:block;font-size:10.5px;color:var(--ink);margin-bottom:1px;}
+  .watch span{font-size:9px;line-height:1.35;color:var(--sub);display:block;}
+  .drop{display:flex;flex-direction:column;align-items:center;margin-top:auto;padding-top:7px;}
+  .drop .v{color:var(--green);font-size:10px;line-height:1;margin-bottom:3px;}
+  .fnrow{display:flex;gap:8px;width:100%;}
+  .fn{flex:1;background:var(--green-tint);border:1.2px solid var(--green);border-radius:6px;
+      padding:5px 8px;text-align:center;}
+  .fn b{display:block;font-size:11.5px;color:var(--ink);line-height:1.4;}
+  .fn span{font-size:9.5px;color:var(--green-dark);font-weight:500;line-height:1.35;display:block;}
+
+  .axis2{margin-top:11px;border:1.5px dashed #B9B9B9;border-radius:8px;padding:6px 16px;
+         display:flex;align-items:center;gap:16px;}
+  .axis2 .a2-tag{flex-shrink:0;border:1.5px solid var(--dark);border-radius:4px;color:var(--ink);
+         font-size:10.5px;font-weight:700;padding:3px 10px;letter-spacing:.04em;}
+  .axis2 p{font-size:11px;color:var(--sub);line-height:1.5;flex:1;}
+  .axis2 p b{color:var(--ink);}
+  .axis2 .fn{flex:0 0 250px;padding:6px 8px;}
+
+  .base-link{display:grid;grid-template-columns:1fr 1fr;margin:8px 120px 5px;}
+  .base-link div{display:flex;align-items:center;justify-content:center;gap:6px;font-size:10px;color:var(--sub);font-weight:500;}
+  .base-link .up::before{content:"\25B2";color:var(--green);font-size:10px;}
+  .base-link .dn::before{content:"\25BC";color:#9A9A9A;font-size:10px;}
+  .base{background:var(--dark);border-radius:8px;padding:9px 20px;display:flex;align-items:center;gap:18px;}
+  .base .b-lbl{flex-shrink:0;}
+  .base .b-lbl b{display:block;color:var(--green);font-size:12.5px;font-weight:700;}
+  .base .b-lbl span{color:#C9C9C9;font-size:9.5px;display:block;max-width:170px;line-height:1.4;}
+  .base .b-items{display:flex;gap:10px;flex:1;}
+  .base .b-items div{flex:1;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.22);
+       border-radius:6px;padding:6px 13px;}
+  .base .b-items b{display:block;color:#FFF;font-size:12px;}
+  .base .b-items span{color:#BDBDBD;font-size:9.5px;}
+
+  /* ---------- Slide 2 : persona table ---------- */
+  .personas{display:flex;gap:12px;margin-top:26px;}
+  .persona{flex:1;border:1px solid var(--line);border-radius:7px;padding:12px 16px;background:var(--card);}
+  .persona b{font-size:12.5px;} .persona .role{color:var(--green-dark);font-weight:700;font-size:12.5px;margin-right:6px;}
+  .persona p{font-size:10.5px;color:var(--sub);margin-top:2px;line-height:1.45;}
+  table{width:100%;border-collapse:collapse;margin-top:20px;}
+  th{background:var(--dark);color:#FFF;font-size:11.5px;font-weight:700;padding:10px 11px;text-align:left;letter-spacing:.03em;}
+  th.center,td.scene{border-left:1px solid var(--line);}
+  td{border-bottom:1px solid var(--line);padding:11px 11px;font-size:11px;line-height:1.55;color:var(--sub);vertical-align:top;}
+  td.f{font-weight:700;color:var(--ink);white-space:nowrap;font-size:11.5px;}
+  td.f span{display:block;font-weight:500;color:var(--faint);font-size:9px;margin-top:1px;}
+  tr.base-row td{background:var(--green-tint);border-bottom:none;}
+  .dash{color:#C2C2C2;}
+  .scene b{color:var(--green-dark);font-weight:700;}
+</style>
+</head>
+<body>
+
+<!-- ================= SLIDE 1 ================= -->
+<section class="slide">
+  <div class="kicker">阪急阪神ホールディングス｜AI経営診断PoC ― アプリ機能構造の前段整理（1/2）</div>
+  <h1>経営判断は、<span class="em">内を「知る」×外を「読む」の並行インプット</span>を起点に「診る→決める」へ流れる閉ループ。<br>
+      各段階に機能が過不足なく対応し、共通基盤がループ全体を賢くする</h1>
+
+  <div class="axis1-tag"><span>主軸</span>経営判断のループ</div>
+
+  <div class="loop-wrap">
+    <div class="loopback"><div class="head"></div><div class="lbl">計画へ反映し、次のサイクルへ</div></div>
+    <div class="stages">
+
+      <div class="par-col">
+        <div class="par-lbl"><i>並行インプット</i></div>
+
+        <div class="stage">
+          <div class="s-head"><span class="s-num">1</span><span class="s-name">知る</span><span class="s-time">内部：過去・現在の把握</span></div>
+          <div class="s-body">
+            <div class="s-q">我々はどこにいるのか、計画通りか</div>
+            <ul class="s-todo">
+              <li><b>計画と実績の乖離・前提の妥当性</b>を定点点検</li>
+              <li>過去の<b>議事・決定事項・社内情報</b>を即座に照会</li>
+            </ul>
+            <div class="drop"><div class="v">&#9660;</div>
+              <div class="fnrow">
+                <div class="fn"><b>② 計画定期診断</b><span>定期点検</span></div>
+                <div class="fn"><b>③ 自由質問</b><span>過去議事・社内情報の照会</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="stage">
+          <div class="s-head"><span class="s-num">2</span><span class="s-name">読む</span><span class="s-time">外部：未来の兆候検知</span></div>
+          <div class="s-body">
+            <div class="s-q">何が起こりうるのか</div>
+            <div class="watch">
+              <div><b>顧客・市場</b><span>沿線人口動態／訪日予約／消費・行動データ</span></div>
+              <div><b>競合</b><span>投資・沿線開発／価格改定の発表</span></div>
+              <div><b>世論・社会</b><span>報道／SNS／検索トレンド</span></div>
+              <div><b>マクロ指標</b><span>金利・建設費・為替／政策・規制</span></div>
+            </div>
+            <div class="drop"><div class="v">&#9660;</div>
+              <div class="fnrow">
+                <div class="fn"><b>⓪ 常時センシング ＋ ① スマート分析</b><span>定常監視 → 検知した変化の即時可視化</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="converge">
+        <svg viewBox="0 0 36 100" preserveAspectRatio="none">
+          <path d="M2 25 H14 V47 H26" fill="none" stroke="#86BC25" stroke-width="1.6" vector-effect="non-scaling-stroke"/>
+          <path d="M2 75 H14 V53 H26" fill="none" stroke="#86BC25" stroke-width="1.6" vector-effect="non-scaling-stroke"/>
+        </svg>
+        <svg viewBox="0 0 36 100" style="position:absolute;inset:0;">
+          <polygon points="26,47 34,50 26,53" fill="#86BC25"/>
+        </svg>
+      </div>
+
+      <div class="stage">
+        <div class="s-head"><span class="s-num">3</span><span class="s-name">診る</span><span class="s-time">変化の見極め</span></div>
+        <div class="s-body">
+          <div class="s-q">この変化は何を意味するのか、どこまで波及するか</div>
+          <ul class="s-todo">
+            <li><b>一過性か構造変化か</b>を見極め</li>
+            <li>グループ事業への<b>波及経路・影響度</b>を試算</li>
+            <li>急変・突発事象の<b>シナリオ影響</b>を評価</li>
+          </ul>
+          <div class="drop"><div class="v">&#9660;</div>
+            <div class="fnrow">
+              <div class="fn"><b>⑤ シナリオ分析</b><span>急変・突発事象の影響分析</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="chev">&#9654;</div>
+
+      <div class="stage">
+        <div class="s-head"><span class="s-num">4</span><span class="s-name">決める</span><span class="s-time">打ち手・計画への反映</span></div>
+        <div class="s-body">
+          <div class="s-q">何をすべきか、計画をどう直すか</div>
+          <ul class="s-todo">
+            <li><b>打ち手オプション</b>の検討・比較</li>
+            <li>事業計画・予算<b>ドラフトへ反映</b></li>
+            <li><b>経営会議向け文書</b>へ具体化</li>
+          </ul>
+          <div class="drop"><div class="v">&#9660;</div>
+            <div class="fnrow">
+              <div class="fn"><b>④ 草案作成支援</b><span>草案レビュー・作成支援</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="axis2">
+    <div class="a2-tag">第2の軸｜業務効率化</div>
+    <p>経営判断の合間に発生する<b>日常業務の生産性向上</b> ― 資料検索・要約・添削・翻訳などの「何でも窓口」として随時利用</p>
+    <div class="fn"><b>③ 自由質問</b><span>社内情報・Web検索を踏まえた自由な壁打ち</span></div>
+  </div>
+
+  <div class="base-link">
+    <div class="up">知の供給（類似事例・因果構造・外部情報）</div>
+    <div class="dn">結果の蓄積（診断・打ち手・結果）</div>
+  </div>
+  <div class="base">
+    <div class="b-lbl"><b>共通基盤</b><span>ループを回すたびに全段階の精度が上がる学習装置</span></div>
+    <div class="b-items">
+      <div><b>⑥ 事例ナレッジ基盤</b><span>外部・内部の類似イベント事例DB（RAG）</span></div>
+      <div><b>HHの事業構造マップ</b><span>主要ビジネス構成・影響要因・関係性</span></div>
+      <div><b>Web検索</b><span>基盤にない外部情報の補完</span></div>
+    </div>
+  </div>
+
+  <div class="copyright">© 2026. For information, contact Deloitte Tohmatsu Group.</div>
+  <div class="pageno">1</div>
+</section>
+
+<!-- ================= SLIDE 2 ================= -->
+<section class="slide">
+  <div class="kicker">阪急阪神ホールディングス｜AI経営診断PoC ― アプリ機能構造の前段整理（2/2）</div>
+  <h1>各機能は<span class="em">「見る・回す・設定する」の3つの役割</span>で使い分ける ――<br>
+      役員は操作せず、判断に集中できる設計</h1>
+
+  <div class="personas">
+    <div class="persona"><span class="role">見る・判断する</span><b>役員・事業トップ</b>
+      <p>届いたアウトプットを見て、判断する。自らは操作しない前提。</p></div>
+    <div class="persona"><span class="role">回す</span><b>経営企画・グループ戦略スタッフ</b>
+      <p>AIと対話して分析を回し、役員への上申に落とし込む。</p></div>
+    <div class="persona"><span class="role">設定する・育てる</span><b>運用管理部署（監視指標の管理部門）</b>
+      <p>指標・ルール・ナレッジを設定し、仕組みを継続的に育てる。</p></div>
+  </div>
+
+  <table>
+    <tr>
+      <th style="width:130px;">機能</th>
+      <th style="width:255px;">見る・判断する（役員）</th>
+      <th style="width:270px;">回す（経営企画）</th>
+      <th style="width:250px;">設定する・育てる（運用管理）</th>
+      <th class="center">想定シーン</th>
+    </tr>
+    <tr>
+      <td class="f">⓪ 常時センシング<span>定常監視</span></td>
+      <td>アラート通知の受信、朝のダッシュボード確認</td>
+      <td>日次の兆候確認、深掘り要否の判断</td>
+      <td>監視指標・閾値・アラームルール・監視スケジュールの設定</td>
+      <td class="scene"><b>毎朝</b>／アラート発報時</td>
+    </tr>
+    <tr>
+      <td class="f">① スマート分析<span>探索的分析</span></td>
+      <td>検知直後の状況サマリーを閲覧</td>
+      <td>AI自動分析の結果確認、追加の切り口を指示</td>
+      <td>分析テンプレートの管理</td>
+      <td class="scene"><b>アラート発報直後</b>の初動把握</td>
+    </tr>
+    <tr>
+      <td class="f">② 計画定期診断<span>定期点検</span></td>
+      <td>経営会議・取締役会での診断結果の閲覧</td>
+      <td>会議前の診断実行・レビュー・論点付与</td>
+      <td>診断対象計画・チェック観点の管理</td>
+      <td class="scene"><b>月次・四半期</b>の経営会議サイクル</td>
+    </tr>
+    <tr>
+      <td class="f">③ 自由質問<span>論点探索・業務支援</span></td>
+      <td>（将来）自ら問いを投げる</td>
+      <td>役員からの宿題対応、過去議事・社内情報の照会、資料検索・要約・添削などの日常業務</td>
+      <td><span class="dash">―</span></td>
+      <td class="scene"><b>随時</b>：役員の「これはどうなっている？」／日常業務の合間</td>
+    </tr>
+    <tr>
+      <td class="f">④ 草案作成支援<span>草案レビュー・作成支援</span></td>
+      <td>最終ドラフトの確認・承認</td>
+      <td>計画・文書ドラフトのレビュー・修正案作成（事業部門の策定担当も利用）</td>
+      <td><span class="dash">―</span></td>
+      <td class="scene"><b>策定・改訂期</b>：予算・中計・事業計画</td>
+    </tr>
+    <tr>
+      <td class="f">⑤ シナリオ分析<span>影響分析</span></td>
+      <td>影響度と対応オプションの比較・判断</td>
+      <td>シナリオ設定・実行・感応度の確認</td>
+      <td>シナリオ前提値の管理</td>
+      <td class="scene"><b>急変・突発事象の発生時</b>／リスク検討の場</td>
+    </tr>
+    <tr class="base-row">
+      <td class="f">⑥ 事例ナレッジ基盤<span>共通基盤</span></td>
+      <td>直接は触れない（各機能の回答品質として享受）</td>
+      <td>類似事例の参照</td>
+      <td>事例の登録・構造化・メンテナンス</td>
+      <td class="scene"><b>常時</b>：各機能の裏側で自動参照／類似事象の発生時</td>
+    </tr>
+  </table>
+
+  <div class="copyright">© 2026. For information, contact Deloitte Tohmatsu Group.</div>
+  <div class="pageno">2</div>
+</section>
+
+</body>
+</html>
