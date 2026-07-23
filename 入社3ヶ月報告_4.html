@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>入社3ヶ月、最前線からの報告</title>
+<style>
+  :root {
+    --stage: #000000;
+    --card: #1D1D1F;
+    --card-high: #2C2C2E;
+    --ink: #F5F5F7;
+    --gray: #86868B;
+    --hairline: rgba(255,255,255,0.12);
+    --acc-a: #0A84FF;
+    --acc-b: #BF5AF2;
+    --warm-a: #FF9F0A;
+    --warm-b: #FF375F;
+    --ease: cubic-bezier(0.25, 0.1, 0.25, 1);
+    --reveal: 800ms;
+    --stagger: 130ms;
+    --slide-t: 650ms;
+    --font: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Helvetica Neue", "Hiragino Sans", "Hiragino Kaku Gothic ProN", "Yu Gothic", sans-serif;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body {
+    height: 100%;
+    background: #000;
+    font-family: var(--font);
+    color: var(--ink);
+    overflow: hidden;
+  }
+  /* ---------- Stage scaling ---------- */
+  #viewport { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; }
+  #stage {
+    width: 1280px; height: 720px;
+    position: relative;
+    background: var(--stage);
+    overflow: hidden;
+    transform-origin: center center;
+  }
+  /* ---------- Slides ---------- */
+  .slide {
+    position: absolute; inset: 0;
+    padding: 72px 96px 88px;
+    display: none;
+    flex-direction: column;
+    background: var(--stage);
+  }
+  .slide.active { display: flex; z-index: 2; animation: slide-in var(--slide-t) var(--ease) both; }
+  .slide.leaving { display: flex; z-index: 1; animation: slide-out var(--slide-t) var(--ease) both; }
+  @keyframes slide-in { from { opacity: 0; } to { opacity: 1; } }
+  @keyframes slide-out { from { opacity: 1; transform: scale(1); } to { opacity: 0; transform: scale(0.985); } }
+  /* ---------- Reveal : fade + rise + blur clear ---------- */
+  .r { opacity: 0; transform: translateY(24px); filter: blur(12px); }
+  .slide.active .r {
+    animation: reveal var(--reveal) var(--ease) forwards;
+    animation-delay: calc(var(--i, 0) * var(--stagger) + 220ms);
+  }
+  @keyframes reveal { to { opacity: 1; transform: translateY(0); filter: blur(0); } }
+  /* ---------- Atoms ---------- */
+  .kicker {
+    font-size: 13px; font-weight: 600; letter-spacing: 0.2em;
+    color: var(--gray); text-transform: uppercase;
+    margin-bottom: 20px;
+  }
+  h1 { font-size: 64px; font-weight: 700; line-height: 1.22; letter-spacing: -0.01em; }
+  h2 { font-size: 44px; font-weight: 700; line-height: 1.25; letter-spacing: -0.01em; margin-bottom: 14px; }
+  .lede { font-size: 19px; line-height: 1.85; color: var(--gray); }
+  .grad {
+    background: linear-gradient(90deg, var(--acc-a), var(--acc-b));
+    -webkit-background-clip: text; background-clip: text;
+    -webkit-text-fill-color: transparent; color: transparent;
+  }
+  .grad-warm {
+    background: linear-gradient(90deg, var(--warm-a), var(--warm-b));
+    -webkit-background-clip: text; background-clip: text;
+    -webkit-text-fill-color: transparent; color: transparent;
+  }
+  .card {
+    background: var(--card);
+    border: 1px solid var(--hairline);
+    border-radius: 24px;
+    padding: 32px 36px;
+  }
+  .card .clabel {
+    font-size: 12px; font-weight: 600; letter-spacing: 0.18em;
+    color: var(--gray); text-transform: uppercase; margin-bottom: 12px;
+  }
+  .pill {
+    display: inline-flex; align-items: center;
+    background: rgba(255,255,255,0.1); color: var(--ink);
+    font-size: 13px; font-weight: 600; letter-spacing: 0.12em;
+    border-radius: 9999px; padding: 10px 22px;
+  }
+  /* ---------- Chrome ---------- */
+  #progress-track {
+    position: absolute; left: 0; bottom: 0; height: 3px; width: 100%;
+    background: rgba(255,255,255,0.1); z-index: 10;
+  }
+  #progress {
+    position: absolute; left: 0; bottom: 0; height: 3px; width: 0;
+    background: rgba(255,255,255,0.9);
+    transition: width var(--slide-t) var(--ease); z-index: 11;
+  }
+  #pager {
+    position: absolute; left: 96px; bottom: 32px;
+    font-size: 13px; font-weight: 500; letter-spacing: 0.08em;
+    color: var(--gray); z-index: 10; font-variant-numeric: tabular-nums;
+  }
+  #pager b { color: var(--ink); font-weight: 600; }
+  #hint {
+    position: absolute; right: 96px; bottom: 32px;
+    font-size: 12px; letter-spacing: 0.08em; color: var(--gray);
+    opacity: 0.6; z-index: 10;
+  }
+  .navzone { position: absolute; top: 0; height: 100%; width: 18%; cursor: pointer; z-index: 5; }
+  #zone-prev { left: 0; } #zone-next { right: 0; }
+
+  /* ---------- Slide 1 : Title ---------- */
+  #s1 { justify-content: center; align-items: center; text-align: center; }
+  #s1 .halo {
+    position: absolute; left: 50%; top: 58%; transform: translate(-50%, -50%);
+    width: 900px; height: 520px; pointer-events: none;
+    background: radial-gradient(ellipse at center, rgba(10,132,255,0.14), rgba(191,90,242,0.07) 45%, transparent 70%);
+  }
+  #s1 .overline { font-size: 14px; font-weight: 600; letter-spacing: 0.24em; color: var(--gray); text-transform: uppercase; margin-bottom: 34px; }
+  #s1 h1 { font-size: 62px; margin-bottom: 24px; }
+  #s1 .sub { font-size: 24px; font-weight: 600; letter-spacing: 0.02em; margin-bottom: 56px; }
+  #s1 .meta { font-size: 14px; color: var(--gray); letter-spacing: 0.1em; }
+  /* ---------- Slide 2 : Timeline ---------- */
+  .tl { position: relative; margin-top: 68px; }
+  .tl-line {
+    position: absolute; top: 6px; left: 0; right: 0; height: 2px;
+    background: linear-gradient(90deg, var(--acc-a), var(--acc-b));
+    opacity: 0.65;
+    transform-origin: left center; transform: scaleX(0);
+  }
+  .slide.active .tl-line { animation: draw 1100ms var(--ease) forwards; animation-delay: 600ms; }
+  @keyframes draw { to { transform: scaleX(1); } }
+  .tl-items { display: grid; grid-template-columns: 1fr 1.2fr 1.2fr; gap: 24px; position: relative; }
+  .tl-item .dot {
+    width: 13px; height: 13px; border-radius: 50%;
+    background: var(--ink); margin-bottom: 22px; position: relative;
+  }
+  .tl-item.now .dot::after {
+    content: ""; position: absolute; inset: -6px; border-radius: 50%;
+    border: 2px solid transparent;
+    background: linear-gradient(90deg, var(--acc-a), var(--acc-b)) border-box;
+    -webkit-mask: linear-gradient(#fff 0 0) padding-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor; mask-composite: exclude;
+  }
+  .tl-item .when { font-size: 13px; font-weight: 600; letter-spacing: 0.16em; color: var(--gray); margin-bottom: 10px; }
+  .tl-item .what { font-size: 21px; font-weight: 700; line-height: 1.45; margin-bottom: 8px; }
+  .tl-item .role { font-size: 14px; color: var(--gray); line-height: 1.7; }
+  #s2 .punch { margin-top: 64px; }
+  #s2 .punch .big { font-size: 31px; font-weight: 700; letter-spacing: -0.01em; line-height: 1.5; }
+  #s2 .punch .psub { font-size: 15px; color: var(--gray); margin-top: 10px; }
+  /* ---------- Slide 3 : Field ---------- */
+  .grid3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; margin-top: 44px; }
+  .grid3 .card .cnum { font-size: 52px; font-weight: 700; letter-spacing: -0.03em; line-height: 1.1; margin-bottom: 8px; }
+  .grid3 .card .cnum small { font-size: 18px; font-weight: 600; color: var(--gray); letter-spacing: 0; margin-left: 3px; }
+  .grid3 .card p { font-size: 14px; line-height: 1.8; color: var(--gray); }
+  #s3 .aside { margin-top: 40px; font-size: 14px; color: var(--gray); letter-spacing: 0.02em; }
+  #s3 .close { margin-top: 18px; font-size: 23px; font-weight: 700; line-height: 1.7; }
+  /* ---------- Slide 4 : Lesson 1 ---------- */
+  .story { display: grid; grid-template-columns: 1fr 56px 1.1fr; gap: 8px; align-items: stretch; margin-top: 40px; }
+  .story .arrow { display: flex; align-items: center; justify-content: center; font-size: 26px; color: var(--gray); }
+  .fails { list-style: none; display: flex; flex-direction: column; gap: 12px; margin-top: 4px; }
+  .fails li { font-size: 15px; line-height: 1.65; color: var(--gray); padding-left: 20px; position: relative; }
+  .fails li::before { content: ""; position: absolute; left: 0; top: 10px; width: 8px; height: 2px; background: var(--gray); opacity: 0.6; }
+  .story .turn { position: relative; border-color: transparent; background: var(--card); }
+  .story .turn::before {
+    content: ""; position: absolute; inset: 0; border-radius: 24px; padding: 1px;
+    background: linear-gradient(120deg, var(--acc-a), var(--acc-b));
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor; mask-composite: exclude;
+    pointer-events: none;
+  }
+  .story .turn .big { font-size: 21px; font-weight: 700; line-height: 1.7; color: var(--ink); margin-top: 4px; }
+  .story .turn p { font-size: 14px; line-height: 1.8; color: var(--gray); margin-top: 14px; }
+  #s4 .moral { margin-top: 44px; font-size: 24px; font-weight: 700; }
+  #s4 .moral small { display: block; font-size: 15px; font-weight: 400; color: var(--gray); margin-top: 10px; letter-spacing: 0; }
+  /* ---------- Slide 5 : Lesson 2 ---------- */
+  .vs { display: grid; grid-template-columns: 1fr 1.15fr; gap: 24px; margin-top: 40px; }
+  .vs .card.no { opacity: 0.6; }
+  .vs .card.no .head { font-size: 20px; font-weight: 700; color: var(--gray); text-decoration: line-through; text-decoration-thickness: 2px; }
+  .vs .card.yes { position: relative; border-color: transparent; }
+  .vs .card.yes::before {
+    content: ""; position: absolute; inset: 0; border-radius: 24px; padding: 1px;
+    background: linear-gradient(120deg, var(--acc-a), var(--acc-b));
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor; mask-composite: exclude;
+    pointer-events: none;
+  }
+  .vs .card.yes .head { font-size: 20px; font-weight: 700; }
+  .vs .card p { font-size: 15px; line-height: 1.9; color: var(--gray); margin-top: 12px; }
+  .vs .card p strong { color: var(--ink); font-weight: 600; }
+  #s5 .ex { margin-top: 30px; }
+  #s5 .ex .exlabel { font-size: 12px; font-weight: 600; letter-spacing: 0.18em; color: var(--gray); margin-bottom: 8px; }
+  #s5 .ex p { font-size: 15px; line-height: 1.9; color: var(--gray); }
+  #s5 .ex p strong { color: var(--ink); font-weight: 600; }
+  #s5 .resp { margin-top: 34px; font-size: 23px; font-weight: 700; letter-spacing: -0.005em; }
+  /* ---------- Slide : Honest Inventory ---------- */
+  .inv { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-top: 44px; }
+  .inv .card ul { list-style: none; display: flex; flex-direction: column; gap: 12px; }
+  .inv .card li { font-size: 16px; line-height: 1.7; color: var(--ink); padding-left: 22px; position: relative; }
+  .inv .card.can li::before {
+    content: ""; position: absolute; left: 0; top: 8px; width: 9px; height: 9px; border-radius: 50%;
+    background: linear-gradient(120deg, var(--acc-a), var(--acc-b));
+  }
+  .inv .card.cant li { color: var(--gray); }
+  .inv .card.cant li::before {
+    content: ""; position: absolute; left: 0; top: 12px; width: 9px; height: 2px; background: var(--gray); opacity: 0.7;
+  }
+  #sinv .note { margin-top: 36px; font-size: 15px; color: var(--gray); line-height: 1.8; }
+  /* ---------- Slide 6 : Messages ---------- */
+  .msgs { display: flex; flex-direction: column; gap: 22px; margin-top: 44px; }
+  .msg { display: grid; grid-template-columns: 92px 1fr; gap: 26px; align-items: center; }
+  .msg .n { font-size: 68px; font-weight: 700; letter-spacing: -0.03em; line-height: 1; text-align: right; }
+  .msg .t { font-size: 25px; font-weight: 700; line-height: 1.5; letter-spacing: -0.005em; }
+  .msg .t small { display: block; font-size: 15px; font-weight: 400; color: var(--gray); margin-top: 5px; letter-spacing: 0; }
+  /* ---------- Slide 7 : Closing ---------- */
+  #s7 { justify-content: center; align-items: center; text-align: center; }
+  #s7 .halo {
+    position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
+    width: 980px; height: 560px; pointer-events: none;
+    background: radial-gradient(ellipse at center, rgba(255,159,10,0.10), rgba(255,55,95,0.05) 45%, transparent 70%);
+  }
+  #s7 .big { font-size: 52px; font-weight: 700; line-height: 1.55; letter-spacing: -0.01em; margin-bottom: 44px; }
+  #s7 .thanks { font-size: 15px; color: var(--gray); letter-spacing: 0.16em; }
+  /* ---------- Reduced motion ---------- */
+  @media (prefers-reduced-motion: reduce) {
+    .slide.active, .slide.leaving, .slide.active .r, .slide.active .tl-line {
+      animation-duration: 0ms !important; animation-delay: 0ms !important;
+    }
+    #progress { transition: none; }
+  }
+</style>
+</head>
+<body>
+<div id="viewport">
+  <div id="stage">
+
+    <!-- 1 / Title -->
+    <section class="slide" id="s1">
+      <div class="halo"></div>
+      <div class="overline r" style="--i:0">Field Report — 2026.07</div>
+      <h1 class="r" style="--i:1">入社3ヶ月、<br>最前線からの報告</h1>
+      <div class="sub r" style="--i:2"><span class="grad">中途入社の技術者が見た、最初の3ヶ月</span></div>
+      <div class="meta r" style="--i:3">入社3ヶ月振り返り発表</div>
+    </section>
+
+    <!-- 2 / Timeline -->
+    <section class="slide" id="s2">
+      <div class="kicker r" style="--i:0">01 — Timeline</div>
+      <h2 class="r" style="--i:1">助走期間は、短かった。</h2>
+      <p class="lede r" style="--i:2">初月から提案活動の最前線へ。2ヶ月目からFDE活動をリード。3ヶ月目から並行案件がスタート。</p>
+      <div class="tl">
+        <div class="tl-line"></div>
+        <div class="tl-items">
+          <div class="tl-item r" style="--i:3">
+            <div class="dot"></div>
+            <div class="when">MAY</div>
+            <div class="what">中外製薬様 提案</div>
+            <div class="role">初月から提案活動の最前線に参加</div>
+          </div>
+          <div class="tl-item r" style="--i:4">
+            <div class="dot"></div>
+            <div class="when">JUN — SEP</div>
+            <div class="what">阪急阪神様 Quick-Win</div>
+            <div class="role">2ヶ月目からPoC検証をリード</div>
+          </div>
+          <div class="tl-item now r" style="--i:5">
+            <div class="dot"></div>
+            <div class="when">JUL —</div>
+            <div class="what">Pubtex様 配本最適化</div>
+            <div class="role">3ヶ月目、並行案件として開始</div>
+          </div>
+        </div>
+      </div>
+      <div class="punch r" style="--i:6">
+        <div class="big">これでも、周りのM-UPの皆さんは<span class="grad">もっとテキパキ</span>動いている。</div>
+        <div class="psub">タイムマネジメントを教わる毎日です。</div>
+      </div>
+    </section>
+
+    <!-- 3 / The field -->
+    <section class="slide" id="s3">
+      <div class="kicker r" style="--i:0">02 — What I Saw</div>
+      <h2 class="r" style="--i:1">私が見たデロイトはこうだった</h2>
+      <p class="lede r" style="--i:2">前職IBMとの比較で体感した、3つのギャップ。優劣ではなく、求められる筋肉が違う。</p>
+      <div class="grid3">
+        <div class="card r" style="--i:3">
+          <div class="clabel">Speed</div>
+          <div class="cnum">明日<small>が標準</small></div>
+          <p>「来週までに」ではなく「明日までに」。意思決定も納期も、この速さで回る。</p>
+        </div>
+        <div class="card r" style="--i:4">
+          <div class="clabel">Quality Bar</div>
+          <div class="cnum">初稿<small>から</small></div>
+          <p>スライドも開発も、初稿からお客様品質。目先の見栄えより、運用や課題まで見据えた先見的な知見が求められる。</p>
+        </div>
+        <div class="card r" style="--i:5">
+          <div class="clabel">Team</div>
+          <div class="cnum">少数精鋭</div>
+          <p>小さなチームに裁量が集まる。役割の境界線は、薄い。</p>
+        </div>
+      </div>
+      <div class="aside r" style="--i:6">……あと、半分冗談ですが。とにかく申請が多い。そして、研修が長い。</div>
+      <div class="close r" style="--i:7">大変さの裏返しで、<span class="grad">毎日お客様と直接触れ合える距離の近さ</span>が面白い。</div>
+    </section>
+
+    <!-- 4 / Lesson 1 -->
+    <section class="slide" id="s4">
+      <div class="kicker r" style="--i:0">03 — Lesson 01</div>
+      <h2 class="r" style="--i:1">抱え込まない。相談が問題解決の王道</h2>
+      <p class="lede r" style="--i:2">中外製薬様の提案で、提案全体の推進にチャレンジ——そして、率直に言えば挫折した。</p>
+      <div class="story">
+        <div class="card r" style="--i:3">
+          <div class="clabel">つまずいたこと</div>
+          <ul class="fails">
+            <li>経験が浅く、提案の勘所がつかめない</li>
+            <li>チームをまだ知らず、頼り方がわからない</li>
+            <li>業務理解が追いつかない</li>
+            <li>求められるスピードに届かない</li>
+          </ul>
+        </div>
+        <div class="arrow r" style="--i:4">→</div>
+        <div class="card turn r" style="--i:5">
+          <div class="clabel">転機</div>
+          <div class="big">一人で粘るのをやめて、<br>根岸さん・下川さんに相談した。</div>
+          <p>困っていることを言葉にした時点で、半分解決していた。中途は不慣れで当たり前——それを認めるところからが立ち上がりだった。</p>
+        </div>
+      </div>
+      <div class="moral r" style="--i:6">早く<span class="grad">相談する人</span>が、早く立ち上がる。<small>初週に戻れるなら、まず「15分相談させてください」から始める。</small></div>
+    </section>
+
+    <!-- 5 / Lesson 2 -->
+    <section class="slide" id="s5">
+      <div class="kicker r" style="--i:0">04 — Lesson 02</div>
+      <h2 class="r" style="--i:1">AI前提で案件を設計する</h2>
+      <p class="lede r" style="--i:2">少人数×複数案件を成立させる鍵。ポイントは「使う」ではなく「設計する」。</p>
+      <div class="vs">
+        <div class="card no r" style="--i:3">
+          <div class="head">AIを使う</div>
+          <p>手が空いたときにAIに聞く。自分が動いている間、AIは止まっている。</p>
+        </div>
+        <div class="card yes r" style="--i:4">
+          <div class="head"><span class="grad">AIに任せる状態を設計する</span></div>
+          <p>事前に「何をやらせるか」を設計しておき、<strong>自分が会議に拘束されている時間に、AIが勝手に進めている状態</strong>を作る。</p>
+        </div>
+      </div>
+      <div class="resp r" style="--i:5">AIに任せるのは作業。<span class="grad">品質の責任は、最後まで自分が持つ</span>。</div>
+    </section>
+
+    <!-- 6 / Honest Inventory -->
+    <section class="slide" id="sinv">
+      <div class="kicker r" style="--i:0">05 — Where I Stand</div>
+      <h2 class="r" style="--i:1">3ヶ月の正直な棚卸し</h2>
+      <p class="lede r" style="--i:2">できるようになったことの横に、まだできないことを並べておきます。</p>
+      <div class="inv">
+        <div class="card can r" style="--i:3">
+          <div class="clabel">できるようになったこと</div>
+          <ul>
+            <li>相談しながら、止まらずに前へ進めること</li>
+            <li>AIを前提にした案件設計</li>
+            <li>複数案件を並行して回すこと</li>
+          </ul>
+        </div>
+        <div class="card cant r" style="--i:4">
+          <div class="clabel">まだできないこと</div>
+          <ul>
+            <li>提案の勘所を、一人で掴みきること</li>
+            <li>業界・業務知識の引き出しの深さ</li>
+            <li>先回りして動ける、余裕のあるスピード</li>
+          </ul>
+        </div>
+      </div>
+      <div class="note r" style="--i:5">右の列があるうちは、まだ相談し続けます。</div>
+    </section>
+
+    <!-- 7 / Messages -->
+    <section class="slide" id="s6">
+      <div class="kicker r" style="--i:0">06 — To Newcomers</div>
+      <h2 class="r" style="--i:1">これから入社する皆さんへ</h2>
+      <div class="msgs">
+        <div class="msg r" style="--i:2">
+          <div class="n grad">1</div>
+          <div class="t">不慣れは前提。早く相談する人が早く立ち上がる<small>抱え込みは美徳ではなく、ボトルネック。</small></div>
+        </div>
+        <div class="msg r" style="--i:3">
+          <div class="n grad">2</div>
+          <div class="t">AIを使う人ではなく、任せる状態を設計する人になる<small>ただし品質の責任は、最後まで自分が持つ。</small></div>
+        </div>
+        <div class="msg r" style="--i:4">
+          <div class="n grad">3</div>
+          <div class="t">最前線は大変だが、一番面白い<small>お客様との距離の近さは、ここでしか味わえない。</small></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 7 / Closing -->
+    <section class="slide" id="s7">
+      <div class="halo"></div>
+      <div class="big r" style="--i:0">最前線は大変だ。<br>でも、<span class="grad-warm">一番面白い</span>。</div>
+      <div class="thanks r" style="--i:1">ご清聴ありがとうございました</div>
+    </section>
+
+    <div id="progress-track"></div>
+    <div id="progress"></div>
+    <div id="pager"><b id="cur">1</b> / <span id="total">7</span></div>
+    <div id="hint">← → キーでスライド送り</div>
+    <div class="navzone" id="zone-prev" title="前へ"></div>
+    <div class="navzone" id="zone-next" title="次へ"></div>
+  </div>
+</div>
+
+<script>
+(function () {
+  var slides = Array.prototype.slice.call(document.querySelectorAll('.slide'));
+  var progress = document.getElementById('progress');
+  var cur = document.getElementById('cur');
+  var total = document.getElementById('total');
+  var stage = document.getElementById('stage');
+  var index = 0;
+  var N = slides.length;
+  total.textContent = N;
+
+  function goTo(next) {
+    if (next < 0 || next >= N || next === index) return;
+    var prev = slides[index];
+    var target = slides[next];
+    slides.forEach(function (s) { s.classList.remove('leaving'); });
+    prev.classList.remove('active');
+    prev.classList.add('leaving');
+    target.classList.remove('active');
+    void target.offsetWidth;
+    target.classList.add('active');
+    setTimeout(function () { prev.classList.remove('leaving'); }, 700);
+    index = next;
+    cur.textContent = index + 1;
+    progress.style.width = ((index + 1) / N * 100) + '%';
+  }
+  function nextSlide() { goTo(index + 1); }
+  function prevSlide() { goTo(index - 1); }
+
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'PageDown' || e.key === 'Enter') { e.preventDefault(); nextSlide(); }
+    else if (e.key === 'ArrowLeft' || e.key === 'PageUp' || e.key === 'Backspace') { e.preventDefault(); prevSlide(); }
+    else if (e.key === 'Home') { e.preventDefault(); goTo(0); }
+    else if (e.key === 'End') { e.preventDefault(); goTo(N - 1); }
+    else if (/^[1-9]$/.test(e.key)) { var k = parseInt(e.key, 10) - 1; if (k < N) goTo(k); }
+  });
+  document.getElementById('zone-next').addEventListener('click', nextSlide);
+  document.getElementById('zone-prev').addEventListener('click', prevSlide);
+
+  var tx = null;
+  document.addEventListener('touchstart', function (e) { tx = e.touches[0].clientX; }, { passive: true });
+  document.addEventListener('touchend', function (e) {
+    if (tx === null) return;
+    var dx = e.changedTouches[0].clientX - tx;
+    if (dx < -40) nextSlide(); else if (dx > 40) prevSlide();
+    tx = null;
+  }, { passive: true });
+
+  function fit() {
+    var s = Math.min(window.innerWidth / 1280, window.innerHeight / 720) * 0.96;
+    stage.style.transform = 'scale(' + s + ')';
+  }
+  window.addEventListener('resize', fit);
+  fit();
+
+  slides[0].classList.add('active');
+  progress.style.width = (1 / N * 100) + '%';
+})();
+</script>
+</body>
+</html>
