@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HHグループ AI経営診断 — ホーム</title>
+<style>
+  :root {
+    --primary:#6F1D32; --primary-hover:#5A1728; --primary-container:#F5E9EC; --on-primary-container:#5A1728;
+    --surface:#F7F4F3; --surface-low:#FBF9F8; --surface-c:#FFFFFF; --surface-high:#F1ECEA;
+    --ink:#1A1A1C; --ink-2:#55555A; --ink-3:#6A6A70;
+    --line:#BDB3AF; --line-soft:#E5DEDC; --line-strong:#948781;
+    --nav1:#2A0E16; --nav2:#3B121E; --on-nav:rgba(255,255,255,.72); --nav-active:rgba(255,255,255,.14);
+    --sans:-apple-system, BlinkMacSystemFont, "Helvetica Neue", "Hiragino Sans", "Noto Sans JP", "Yu Gothic Medium", "Meiryo", sans-serif;
+    --mono:"SF Mono", SFMono-Regular, ui-monospace, Menlo, Consolas, monospace;
+  }
+  * { box-sizing: border-box; margin: 0; }
+  body {
+    font-family: var(--sans); background: var(--surface); color: var(--ink);
+    font-size: 14px; line-height: 1.75; letter-spacing: .01em;
+    line-break: strict; word-break: keep-all; overflow-wrap: anywhere;
+    display: flex; min-height: 100vh; align-items: stretch;
+  }
+  .palt { font-feature-settings: "palt" 1; }
+
+  /* ── サイドバー（画面上で唯一、暗くブランド色に染まる領域） */
+  .side {
+    width: 224px; flex: none; background: linear-gradient(180deg, var(--nav1), var(--nav2));
+    display: flex; flex-direction: column; padding: 20px 12px 16px;
+  }
+  .brand { color: rgba(255,255,255,.88); font-size: 12px; font-weight: 500; letter-spacing: .06em;
+           font-feature-settings: "palt" 1; padding: 0 10px 18px; }
+  .appswitch { display: flex; gap: 4px; background: rgba(255,255,255,.08); border-radius: 8px; padding: 3px; margin-bottom: 18px; }
+  .appbtn { flex: 1; border: 0; background: transparent; color: var(--on-nav); font-family: var(--sans);
+            font-size: 12px; font-weight: 500; padding: 7px 0; border-radius: 6px; cursor: pointer;
+            font-feature-settings: "palt" 1; transition: color 120ms cubic-bezier(.2,0,0,1); }
+  .appbtn.on { background: var(--nav-active); color: #FFFFFF; }
+  .nav { display: flex; flex-direction: column; gap: 2px; }
+  .nav a {
+    color: var(--on-nav); text-decoration: none; font-size: 13px; line-height: 1.5;
+    padding: 10px; border-radius: 8px; transition: color 120ms cubic-bezier(.2,0,0,1), background 120ms cubic-bezier(.2,0,0,1);
+  }
+  .nav a:hover { color: #FFFFFF; }
+  .nav a.on { background: var(--nav-active); color: #FFFFFF; }
+  .side-spacer { flex: 1; }
+  .side-foot { color: rgba(255,255,255,.45); font-size: 11px; padding: 10px; font-feature-settings: "palt" 1; }
+
+  /* ── 本文（紙面） */
+  .main { flex: 1; min-width: 0; padding: 44px 40px 64px; }
+  .content { max-width: 1280px; margin: 0 auto; }
+  h1 { font-size: 30px; font-weight: 700; line-height: 1.25; letter-spacing: -.02em;
+       font-feature-settings: "palt" 1; margin-bottom: 6px; }
+  .lede { color: var(--ink-2); font-size: 14px; margin-bottom: 44px; }
+
+  /* ステージ行 */
+  .stage { display: grid; grid-template-columns: 200px minmax(0,1fr); gap: 24px; position: relative; padding-bottom: 44px; }
+  .rail { position: absolute; left: 13px; top: 36px; bottom: -4px; width: 1px; background: var(--line-soft); }
+  .stage:nth-last-of-type(2) .rail { bottom: 8px; }
+  .marker {
+    width: 28px; height: 28px; border-radius: 999px; background: var(--surface-c);
+    border: 1px solid var(--line-strong); color: var(--ink);
+    font-family: var(--mono); font-feature-settings: "tnum" 1, "zero" 1; font-size: 13px; font-weight: 600;
+    display: flex; align-items: center; justify-content: center; margin-bottom: 10px; position: relative; z-index: 1;
+  }
+  .stage-kicker { color: var(--ink-3); font-size: 11px; letter-spacing: .08em; font-feature-settings: "palt" 1; margin-bottom: 2px; }
+  .stage-name { font-size: 20px; font-weight: 700; line-height: 1.4; letter-spacing: -.015em;
+                font-feature-settings: "palt" 1; margin-bottom: 4px; }
+  .stage-sub { color: var(--ink-3); font-size: 12px; line-height: 1.7; word-break: normal; overflow-wrap: normal; }
+
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; }
+  .card {
+    background: var(--surface-c); border: 1px solid var(--line-soft); border-radius: 12px;
+    padding: 24px; cursor: pointer; display: flex; flex-direction: column;
+    transition: border-color 120ms cubic-bezier(.2,0,0,1); min-height: 132px;
+  }
+  .card:hover { border-color: var(--line-strong); }
+  .card.wide { grid-column: span 2; }
+  .q { color: var(--ink-2); font-size: 12px; font-weight: 500; letter-spacing: .02em;
+       font-feature-settings: "palt" 1; margin-bottom: 5px; }
+  .card h3 { font-size: 15px; font-weight: 650; line-height: 1.5; letter-spacing: -.01em;
+             font-feature-settings: "palt" 1; margin-bottom: 7px; }
+  .card p { color: var(--ink-2); font-size: 13px; line-height: 1.7; margin-bottom: 14px; word-break: normal; overflow-wrap: normal; }
+  .go { margin-top: auto; color: var(--primary); font-size: 12px; font-weight: 500; letter-spacing: .02em;
+        font-feature-settings: "palt" 1; }
+  .card:hover .go { text-decoration: underline; text-underline-offset: 3px; }
+  .chip { display: inline-block; color: var(--ink-2); font-size: 11px; font-weight: 400;
+          border: 1px solid var(--line); border-radius: 4px; padding: 0 6px; margin-left: 8px; vertical-align: 2px;
+          font-feature-settings: "palt" 1; }
+  .loop { color: var(--ink-3); font-size: 12px; margin: -8px 0 0 44px; }
+
+  /* いつでも */
+  .anytime { border-top: 1px solid var(--line); margin-top: 56px; padding-top: 36px; }
+  .anytime .stage-name { margin-bottom: 4px; }
+  .anytime .stage-sub { margin-bottom: 18px; }
+
+  /* AIの発話帯（callout-advisory: 角丸なし・左3px罫） */
+  .advisory {
+    margin-top: 24px; background: var(--primary-container); border-left: 3px solid var(--primary);
+    padding: 16px; color: var(--on-primary-container); font-size: 13px; line-height: 1.7;
+    display: flex; align-items: baseline; gap: 12px;
+  }
+  .advisory b { font-weight: 650; }
+  .advisory .go { margin-left: auto; flex: none; }
+
+  .foot { border-top: 1px solid var(--line-soft); margin-top: 48px; padding-top: 16px;
+          color: var(--ink-3); font-size: 11px; line-height: 1.8; letter-spacing: .03em; }
+
+  @media (prefers-reduced-motion: reduce) { * { transition-duration: 0ms !important; } }
+</style>
+</head>
+<body>
+  <aside class="side">
+    <div class="brand">阪急阪神グループ</div>
+    <div class="appswitch">
+      <button class="appbtn on">経営診断</button>
+      <button class="appbtn">株主総会Q&amp;A</button>
+    </div>
+    <nav class="nav">
+      <a class="on" href="#">ホーム</a>
+      <a href="#">センシング</a>
+      <a href="#">計画点検</a>
+      <a href="#">シナリオ分析</a>
+      <a href="#">自由質問</a>
+    </nav>
+    <div class="side-spacer"></div>
+    <div class="side-foot">管理者設定 ｜ ログアウト</div>
+  </aside>
+
+  <main class="main"><div class="content">
+    <h1>今日は、何をしますか</h1>
+    <div class="lede">計画のサイクルのどこにいるかで選んでください。カードを選ぶと、その機能に移動します。</div>
+
+    <div class="stage">
+      <div class="rail"></div>
+      <div>
+        <div class="marker">1</div>
+        <div class="stage-kicker">STAGE 1</div>
+        <div class="stage-name">企画策定段階</div>
+        <div class="stage-sub">計画を作り、磨き、出すまで</div>
+      </div>
+      <div class="grid">
+        <div class="card">
+          <div class="q">環境は変わっていないか？</div>
+          <h3>前提と環境変化を洗い直す</h3>
+          <p>前回策定時からの内部・外部環境の変化を整理し、織り込むべき変化点と、前提・KPIの抜け漏れを点検します。</p>
+          <div class="go">計画点検へ →</div>
+        </div>
+        <div class="card">
+          <div class="q">この計画で出せるか？</div>
+          <h3>ドラフトを総点検する</h3>
+          <p>完成した計画資料を、論理の整合・リスクと論点・前回指摘への対応・各事業への影響の観点で一括レビュー。外部目線の想定問いにも備えられます。</p>
+          <div class="go">計画点検へ →</div>
+        </div>
+        <div class="card">
+          <div class="q">グループとして整合するか？</div>
+          <h3>横断で束ねて見る<span class="chip">HD</span></h3>
+          <p>出揃った各事業の計画を横並びで読み、前提の食い違い・カニバリゼーション・共通課題と資源配分の論点を示します。</p>
+          <div class="go">計画点検（事業比較・グループ全体）へ →</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="stage">
+      <div class="rail"></div>
+      <div>
+        <div class="marker">2</div>
+        <div class="stage-kicker">STAGE 2</div>
+        <div class="stage-name">計画検証段階</div>
+        <div class="stage-sub">計画を基準に、実態を確かめる</div>
+      </div>
+      <div class="grid">
+        <div class="card">
+          <div class="q">計画どおりか？</div>
+          <h3>実態とのズレを定点観測する</h3>
+          <p>実績と外部環境が想定からどれだけ離れたかを定例で点検。乖離の大きい論点から経営影響と修正案を提示。</p>
+          <div class="go">計画点検へ →</div>
+        </div>
+        <div class="card">
+          <div class="q">なぜ動いた？</div>
+          <h3>業績が動いた要因を突き止める</h3>
+          <p>天候・為替などの外部データと自社実績を突き合わせて検証。現場感覚の裏取りや想定外の要因発見に。</p>
+          <div class="go">自由質問へ →</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="stage">
+      <div>
+        <div class="marker">3</div>
+        <div class="stage-kicker">STAGE 3</div>
+        <div class="stage-name">軌道修正段階</div>
+        <div class="stage-sub">変化に気づき、打ち手を決める。気づく → 動く → 備える。</div>
+      </div>
+      <div class="grid">
+        <div class="card">
+          <div class="q">世の中に異変は？</div>
+          <h3>変化の予兆を掴む</h3>
+          <p>6事業の重要指標の動きと異変のサインをひと目で確認。気になる指標は推移グラフへ掘り下げ。</p>
+          <div class="go">経営ダッシュボードへ →</div>
+        </div>
+        <div class="card">
+          <div class="q">どう動く？</div>
+          <h3>起きたことへの打ち手を整理する</h3>
+          <p>データ・過去事例・Web情報を根拠に、自社への影響、打ち手の選択肢、見直すべき計画を整理します。</p>
+          <div class="go">自由質問へ →</div>
+        </div>
+        <div class="card">
+          <div class="q">もし〜なら？</div>
+          <h3>将来シナリオに備える</h3>
+          <p>想定シナリオを投げると、基準・上振れ・下振れの3通りで事業別影響を試算。開始・撤回条件つきの対応案まで。</p>
+          <div class="go">シナリオ分析へ →</div>
+        </div>
+      </div>
+    </div>
+    <div class="loop">↺ 修正した計画は、次の策定でステージ1へ戻ります</div>
+
+    <div class="anytime">
+      <div class="stage-name">業務の効率化</div>
+      <div class="stage-sub">サイクルのどの段階でも使える、日々の道具</div>
+      <div class="grid">
+        <div class="card">
+          <h3>資料を壁打ちして磨く</h3>
+          <p>書きかけの計画・提案・スピーチ原稿を添付し、対話で論点を整理。「まず直すべき点 → 修正文案」の順で改善案が返ります。</p>
+          <div class="go">計画作成支援へ →</div>
+        </div>
+        <div class="card">
+          <h3>受け取った資料を要約し、論点を掴む</h3>
+          <p>会議資料・提案資料を添付すると、要約と論点・ToDoを抽出。読み込みの時間を短縮します。</p>
+          <div class="go">自由質問（資料添付）へ →</div>
+        </div>
+        </div>
+      <div class="advisory">
+        <span><b>迷ったら、そのまま聞いてください。</b>どのカードにも当てはまらない相談は「自由質問」がすべての入口です。</span>
+        <span class="go">自由質問へ →</span>
+      </div>
+    </div>
+
+    <div class="foot">
+      元の11ユースケースとの対応：UC1→「前提と環境変化」／UC2・3→「総点検」／UC5→「束ねる」（以上、企画策定段階）／UC6→「ズレの定点観測」／UC7→「要因」（計画検証段階）／UC8→「予兆」／UC9→「打ち手」／UC10→「もし〜なら」（軌道修正段階）／UC11→「壁打ち」「要約」（業務の効率化）。<br>
+      UC4（経営会議の過去指摘への先回り）は、議事録データの整備後に企画策定段階のカードとして追加予定（当面は「総点検」の前回指摘レビューがカバー）。検証段階と修正段階の境界は「基準が計画か、起点が変化か」。
+    </div>
+  </div></main>
+</body>
+</html>
