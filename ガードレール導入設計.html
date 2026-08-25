@@ -1,0 +1,503 @@
+<title>ガードレール導入設計</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700;900&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+  :root{
+    --paper:#f5f7f9; --card:#ffffff; --card-2:#eef2f5;
+    --ink:#0f1720; --ink-2:#48555f; --ink-3:#78848d;
+    --line:#e0e6ea; --line-2:#c6d0d7;
+    --brand:#07467e; --brand-soft:#e8eef5; --brand-deep:#052f56;
+    --copper:#7a3e12; --copper-soft:#f6efe8;
+    --slate:#6b7684; --slate-soft:#f1f3f5;
+    --ok:#1c6b45; --ok-soft:#e7f2ec;
+    --stop:#a8232c; --stop-soft:#f8e9e9;
+    --sans:"Noto Sans JP","Hiragino Kaku Gothic ProN","Yu Gothic",sans-serif;
+    --mono:"JetBrains Mono","SFMono-Regular",Consolas,monospace;
+  }
+  @media (prefers-color-scheme:dark){
+    :root:not([data-theme="light"]){
+      --paper:#0e1417; --card:#161d21; --card-2:#1d252a;
+      --ink:#eef3f5; --ink-2:#b2bfc6; --ink-3:#84929a;
+      --line:#283237; --line-2:#39454b;
+      --brand:#7fb2e0; --brand-soft:#12222f; --brand-deep:#a9cdec;
+      --copper:#d09a63; --copper-soft:#2a1e14;
+      --slate:#9aa6b1; --slate-soft:#1d2429;
+      --ok:#6cc79a; --ok-soft:#12241d;
+      --stop:#e79098; --stop-soft:#2a1618;
+    }
+  }
+  :root[data-theme="dark"]{
+    --paper:#0e1417; --card:#161d21; --card-2:#1d252a;
+    --ink:#eef3f5; --ink-2:#b2bfc6; --ink-3:#84929a;
+    --line:#283237; --line-2:#39454b;
+    --brand:#7fb2e0; --brand-soft:#12222f; --brand-deep:#a9cdec;
+    --copper:#d09a63; --copper-soft:#2a1e14;
+    --slate:#9aa6b1; --slate-soft:#1d2429;
+    --ok:#6cc79a; --ok-soft:#12241d;
+    --stop:#e79098; --stop-soft:#2a1618;
+  }
+
+  *{box-sizing:border-box;}
+  body{
+    margin:0;background:var(--paper);color:var(--ink);
+    font-family:var(--sans);font-size:16px;line-height:1.85;
+    -webkit-font-smoothing:antialiased;
+  }
+  .page{max-width:1060px;margin:0 auto;padding:48px 28px 76px;}
+
+  header.doc{border-bottom:3px solid var(--brand);padding-bottom:20px;margin-bottom:26px;}
+  .eyebrow{margin:0 0 8px;font-size:12px;font-weight:700;letter-spacing:.16em;color:var(--brand);}
+  h1{margin:0;font-size:32px;font-weight:900;line-height:1.32;letter-spacing:.01em;}
+  .doc-meta{margin:10px 0 0;font-size:13px;color:var(--ink-3);}
+  .lede{margin:18px 0 0;font-size:15.5px;color:var(--ink-2);line-height:1.9;max-width:64ch;}
+
+  /* ── 結論ボックス ───────────────────── */
+  .verdict{
+    margin:26px 0 42px;background:var(--card);border:1px solid var(--line);
+    border-left:5px solid var(--brand);border-radius:4px;padding:22px 26px;
+  }
+  .verdict h2{margin:0 0 12px;font-size:14px;font-weight:900;letter-spacing:.08em;color:var(--brand);}
+  .verdict .head-line{font-size:19px;font-weight:900;line-height:1.6;margin:0 0 12px;}
+  .verdict .head-line .yes{color:var(--ok);}
+  .verdict .head-line .no{color:var(--stop);}
+  .verdict ol{margin:0;padding-left:1.3em;}
+  .verdict li{margin:5px 0;font-size:14.5px;color:var(--ink-2);}
+  .verdict li b{color:var(--ink);}
+
+  section{margin:0 0 46px;}
+  h2.sec{display:flex;align-items:baseline;gap:14px;margin:0 0 8px;font-size:22px;font-weight:900;line-height:1.4;}
+  h2.sec .no{
+    flex:none;display:grid;place-items:center;width:30px;height:30px;background:var(--brand);
+    color:#fff;border-radius:3px;font-size:15px;font-weight:900;font-family:var(--mono);
+  }
+  h2.sec small{font-size:12.5px;font-weight:500;color:var(--ink-3);}
+  h3{margin:28px 0 8px;font-size:16.5px;font-weight:900;color:var(--brand-deep);}
+  p{margin:10px 0;}
+  ul,ol{margin:10px 0;padding-left:1.4em;}
+  li{margin:5px 0;}
+  code{
+    font-family:var(--mono);font-size:.86em;background:var(--card-2);
+    border:1px solid var(--line);border-radius:3px;padding:1px 5px;
+  }
+  .em{color:var(--brand);font-weight:700;}
+
+  /* ── 図 ─────────────────────────────── */
+  .figure{
+    margin:20px 0 10px;background:var(--card);border:1px solid var(--line);border-radius:4px;
+    padding:22px 20px 16px;overflow-x:auto;
+  }
+  .figure svg{display:block;width:100%;min-width:900px;height:auto;}
+  .fig-cap{margin:6px 0 0;font-size:12.5px;color:var(--ink-3);line-height:1.7;}
+  .arch-title{font:700 13px var(--sans);fill:var(--ink);}
+  .arch-label{font:700 12.5px var(--sans);fill:var(--ink);}
+  .arch-sub{font:400 11px var(--sans);fill:var(--ink-3);}
+  .arch-note{font:700 11px var(--sans);fill:var(--brand);}
+  .arch-band{font:700 12px var(--sans);fill:var(--ink-2);}
+  .arch-tag{font:700 10px var(--mono);}
+  .arch-mono{font-family:var(--mono);font-weight:600;}
+
+  /* ── 表 ─────────────────────────────── */
+  .scroll{overflow-x:auto;margin:16px 0;border:1px solid var(--line);border-radius:4px;background:var(--card);}
+  table{width:100%;border-collapse:collapse;font-size:14px;min-width:640px;}
+  th,td{padding:11px 14px;text-align:left;vertical-align:top;border-bottom:1px solid var(--line);line-height:1.7;}
+  thead th{
+    background:var(--card-2);font-size:12px;font-weight:900;letter-spacing:.04em;color:var(--ink-2);
+    white-space:nowrap;border-bottom:2px solid var(--line-2);
+  }
+  tbody tr:last-child td{border-bottom:0;}
+  td.no-cell{width:34px;text-align:center;font-family:var(--mono);font-weight:700;color:var(--ink-3);}
+  .pill{display:inline-block;font-size:11.5px;font-weight:700;padding:1px 9px;border-radius:999px;white-space:nowrap;}
+  .pill.brand{background:var(--brand-soft);color:var(--brand);}
+  .pill.copper{background:var(--copper-soft);color:var(--copper);}
+  .pill.ok{background:var(--ok-soft);color:var(--ok);}
+  .pill.stop{background:var(--stop-soft);color:var(--stop);}
+  .pill.slate{background:var(--slate-soft);color:var(--slate);}
+
+  .note{
+    margin:16px 0;padding:14px 18px;border-radius:4px;background:var(--card);
+    border:1px solid var(--line);border-left:4px solid var(--ink-3);
+    font-size:14px;line-height:1.8;color:var(--ink-2);
+  }
+  .note.caution{border-left-color:var(--copper);}
+  .note.stop{border-left-color:var(--stop);}
+  .note b{color:var(--ink);}
+  pre{
+    margin:14px 0;padding:16px 18px;background:var(--card);border:1px solid var(--line);
+    border-left:4px solid var(--brand);border-radius:4px;overflow-x:auto;
+    font-family:var(--mono);font-size:12.5px;line-height:1.85;color:var(--ink-2);
+  }
+  pre b{color:var(--brand);font-weight:600;}
+  pre i{color:var(--ink-3);font-style:normal;}
+
+  footer.doc{
+    margin-top:56px;padding-top:18px;border-top:1px solid var(--line);
+    font-size:12.5px;color:var(--ink-3);line-height:1.9;
+  }
+  @media(max-width:640px){
+    .page{padding:32px 16px 56px;}
+    h1{font-size:25px;}
+  }
+</style>
+
+<div class="page" lang="ja-JP">
+
+  <header class="doc">
+    <p class="eyebrow">HHグループ AI経営診断アプリ ／ STAGE 1 タスク②の設計</p>
+    <h1>入出力ガードレールの導入設計</h1>
+    <p class="doc-meta">2026-08-26 ｜ 対象：gradio_app_0825（PoC実装コードの確認に基づく）｜ STAGE 1（2026年10月〜）着手用</p>
+    <p class="lede">
+      入力と出力の両方で、個人情報・有害情報を検出して制御するための設計です。
+      Amazon Bedrock Guardrails をどこに、どう入れるか。そして
+      <b>ガードレールだけでは塞がらない穴を、どこで塞ぐか</b>を整理します。
+    </p>
+  </header>
+
+  <div class="verdict">
+    <h2>結論</h2>
+    <p class="head-line">Bedrock Guardrailsは<span class="yes">入れるべき</span>。ただし<span class="no">それだけでは足りない</span>。</p>
+    <ol>
+      <li><b>認可は守れない</b>：「この人がこの資料を見てよいか」をガードレールは知りません。最大の情報漏えい経路は権限であり、そこは既存の権限台帳が唯一の防壁です。</li>
+      <li><b>日本語の検出に穴がある</b>：氏名・住所・電話・マイナンバー・口座・社員番号は、正規表現と辞書の自前併用が要ります。</li>
+      <li><b>LLMを通らない経路は対象外</b>：履歴DB・ログ・Word出力に残る個人情報は、保存前のマスキングでしか防げません。</li>
+    </ol>
+    <p style="margin:14px 0 0;font-size:14.5px;color:var(--ink-2)">
+      ただし、<b>STAGE 1で新たに作るのは3つだけ</b>です（日本語PIIの検査／外部テキストの隔離／保存前マスキング。合計3〜4人日）。
+      最大のリスクである認可はすでに動いており、今回はそこへ検査層を重ねる作業になります。&nbsp;→&nbsp;<b>§4</b>
+    </p>
+  </div>
+
+  <!-- ══════════ 1 ══════════ -->
+  <section>
+    <h2 class="sec"><span class="no">1</span>現状の経路<small>設計の前提</small></h2>
+    <div class="scroll">
+      <table>
+        <thead><tr><th style="width:22%">項目</th><th>現状</th></tr></thead>
+        <tbody>
+          <tr><td>LLM呼び出し</td>
+            <td><code>anthropic.Anthropic</code> SDK →
+              <code>bedrock-mantle.ap-northeast-1.api.aws/anthropic</code>（<b>Anthropic互換エンドポイント</b>）</td></tr>
+          <tr><td>チョークポイント</td>
+            <td>全機能が <code>ai_client.chat()</code> ／ <code>chat_json()</code> の<b>2関数だけ</b>を通る<br>
+              （app.py・knowledge_rag.py・agm/service.py・agm/workflow.py・collectors/sns_trends.py）</td></tr>
+          <tr><td>プロンプトに入る<br>外部テキスト</td>
+            <td>①利用者入力　②添付ファイルの抽出テキスト　③RAG検索結果（社内資料）<br>
+              ④<b>ウェブ検索のページ本文</b>　⑤<b>X投稿・ニュース見出し</b>（SNS分析）</td></tr>
+          <tr><td>出力先</td>
+            <td>画面 ／ Word出力 ／ <b>AI回答履歴DB</b> ／ applog</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="note caution">
+      <b>設計上の制約が1つあります。</b>
+      Guardrailsを「モデル呼び出しに同梱する」方式（<code>guardrailConfig</code>）は Converse／InvokeModel API の機能で、
+      現在のAnthropic互換エンドポイントでは指定できません。したがって
+      <b><code>ApplyGuardrail</code> API を前後に別呼び出しで挟む</b>構成を採ります。
+      この方式はモデル経路に依存せず、④⑤のような「モデルに渡す前のテキスト」にも使える利点があります。
+    </div>
+  </section>
+
+  <!-- ══════════ 2 ══════════ -->
+  <section>
+    <h2 class="sec"><span class="no">2</span>アーキテクチャ<small>3層＋横断2つ</small></h2>
+
+    <div class="figure">
+      <svg viewBox="0 0 1180 560" role="img"
+           aria-label="入力5系統を入口検査に通し、LLM、出口検査を経て出力先へ。横断で認可と監査ログが全体を貫く構成図">
+        <defs>
+          <marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+            <path d="M0,0 L10,5 L0,10 z" fill="var(--line-2)"/>
+          </marker>
+          <marker id="ar-b" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+            <path d="M0,0 L10,5 L0,10 z" fill="var(--brand)"/>
+          </marker>
+          <marker id="ar-stop" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+            <path d="M0,0 L10,5 L0,10 z" fill="var(--stop)"/>
+          </marker>
+        </defs>
+
+        <!-- 列見出し -->
+        <text class="arch-note" x="16" y="22">入力（信頼度で分ける）</text>
+        <text class="arch-note" x="300" y="22">入口の検査</text>
+        <text class="arch-note" x="556" y="22">モデル</text>
+        <text class="arch-note" x="716" y="22">出口の検査</text>
+        <text class="arch-note" x="960" y="22">出力先</text>
+
+        <!-- 入力5系統 -->
+        <g>
+          <rect x="16" y="36" width="242" height="46" rx="3" fill="var(--brand-soft)" stroke="var(--brand)" stroke-width="1.2"/>
+          <text class="arch-tag" x="28" y="56" fill="var(--brand)">①</text>
+          <text class="arch-label" x="46" y="57">利用者の入力（チャット）</text>
+          <text class="arch-sub" x="46" y="73">個人情報・機密の混入を止める</text>
+
+          <rect x="16" y="90" width="242" height="46" rx="3" fill="var(--slate-soft)" stroke="var(--slate)" stroke-width="1.2"/>
+          <text class="arch-tag" x="28" y="110" fill="var(--slate)">②</text>
+          <text class="arch-label" x="46" y="111">添付ファイルの抽出テキスト</text>
+          <text class="arch-sub" x="46" y="127">PDF・Word・Excel → テキスト</text>
+
+          <rect x="16" y="144" width="242" height="46" rx="3" fill="var(--slate-soft)" stroke="var(--slate)" stroke-width="1.2"/>
+          <text class="arch-tag" x="28" y="164" fill="var(--slate)">③</text>
+          <text class="arch-label" x="46" y="165">RAG検索結果（社内資料）</text>
+          <text class="arch-sub" x="46" y="181">索引時に1回だけ検査（後述）</text>
+
+          <rect x="16" y="198" width="242" height="46" rx="3" fill="var(--copper-soft)" stroke="var(--copper)" stroke-width="1.6"/>
+          <text class="arch-tag" x="28" y="218" fill="var(--copper)">④</text>
+          <text class="arch-label" x="46" y="219">ウェブ検索のページ本文</text>
+          <text class="arch-sub" x="46" y="235">外部・未検証。注入の主経路</text>
+
+          <rect x="16" y="252" width="242" height="46" rx="3" fill="var(--copper-soft)" stroke="var(--copper)" stroke-width="1.6"/>
+          <text class="arch-tag" x="28" y="272" fill="var(--copper)">⑤</text>
+          <text class="arch-label" x="46" y="273">X投稿・ニュース見出し</text>
+          <text class="arch-sub" x="46" y="289">外部・未検証。注入の主経路</text>
+        </g>
+
+        <!-- 合流線 -->
+        <g fill="none" stroke="var(--line-2)" stroke-width="1.6">
+          <path d="M258 59 H 284 Q 296 59 296 79 V 150" marker-end="url(#ar)"/>
+          <path d="M258 113 H 276 Q 296 113 296 133 V 150" marker-end="url(#ar)"/>
+          <path d="M258 167 H 296 V 150" marker-end="url(#ar)"/>
+          <path d="M258 221 H 276 Q 296 221 296 201 V 184" marker-end="url(#ar)"/>
+          <path d="M258 275 H 284 Q 296 275 296 255 V 184" marker-end="url(#ar)"/>
+        </g>
+
+        <!-- 入口検査 -->
+        <rect x="308" y="36" width="212" height="262" rx="4" fill="var(--card)"
+              stroke="var(--brand)" stroke-width="1.6" stroke-dasharray="6 4"/>
+        <rect x="308" y="36" width="212" height="30" rx="0" fill="var(--brand)"/>
+        <text class="arch-label" x="322" y="56" fill="#fff">入口の検査</text>
+        <text class="arch-sub" x="322" y="88" fill="var(--ink-2)">ApplyGuardrail（INPUT）</text>
+        <text class="arch-sub" x="322" y="106">・有害・プロンプト攻撃</text>
+        <text class="arch-sub" x="322" y="122">・PII／拒否トピック／禁止語</text>
+        <text class="arch-sub" x="322" y="150" fill="var(--ink-2)">＋ 自前の日本語PII検査</text>
+        <text class="arch-sub" x="322" y="166">・氏名／住所／電話／口座</text>
+        <text class="arch-sub" x="322" y="182">・マイナンバー／社員番号</text>
+        <line x1="322" y1="200" x2="506" y2="200" stroke="var(--line)" stroke-width="1"/>
+        <text class="arch-sub" x="322" y="222" fill="var(--copper)">④⑤は「利用者入力」と</text>
+        <text class="arch-sub" x="322" y="238" fill="var(--copper)">別タグで評価し、引用として隔離</text>
+        <rect x="322" y="252" width="184" height="32" rx="3" fill="var(--stop-soft)"/>
+        <text class="arch-sub" x="334" y="266" fill="var(--stop)">ブロック時は fail-closed</text>
+        <text class="arch-sub" x="334" y="280" fill="var(--stop)">（素通しにしない）</text>
+
+        <!-- 入口 → LLM -->
+        <line x1="520" y1="150" x2="556" y2="150" stroke="var(--brand)" stroke-width="1.8" marker-end="url(#ar-b)"/>
+        <text class="arch-sub" x="522" y="142" fill="var(--brand)">マスク済み</text>
+
+        <!-- LLM -->
+        <rect x="556" y="96" width="132" height="108" rx="4" fill="var(--brand)"/>
+        <text class="arch-label" x="572" y="126" fill="#fff">ai_client.chat()</text>
+        <text class="arch-sub" x="572" y="146" fill="#cfe0ef">Claude（Bedrock）</text>
+        <text class="arch-sub" x="572" y="166" fill="#cfe0ef">全機能が必ず</text>
+        <text class="arch-sub" x="572" y="182" fill="#cfe0ef">ここを通る</text>
+
+        <!-- LLM → 出口 -->
+        <line x1="688" y1="150" x2="724" y2="150" stroke="var(--brand)" stroke-width="1.8" marker-end="url(#ar-b)"/>
+
+        <!-- 出口検査 -->
+        <rect x="724" y="36" width="200" height="262" rx="4" fill="var(--card)"
+              stroke="var(--brand)" stroke-width="1.6" stroke-dasharray="6 4"/>
+        <rect x="724" y="36" width="200" height="30" fill="var(--brand)"/>
+        <text class="arch-label" x="738" y="56" fill="#fff">出口の検査</text>
+        <text class="arch-sub" x="738" y="88" fill="var(--ink-2)">ApplyGuardrail（OUTPUT）</text>
+        <text class="arch-sub" x="738" y="106">・有害表現／PIIの再確認</text>
+        <text class="arch-sub" x="738" y="122">・根拠から外れた回答の抑止</text>
+        <text class="arch-sub" x="738" y="150" fill="var(--ink-2)">＋ 保存前マスキング</text>
+        <text class="arch-sub" x="738" y="166">・履歴DB／applog／Word出力</text>
+        <text class="arch-sub" x="738" y="182">・出力中のURL・リンクを制御</text>
+        <line x1="738" y1="200" x2="910" y2="200" stroke="var(--line)" stroke-width="1"/>
+        <text class="arch-sub" x="738" y="222" fill="var(--ink-2)">ブロック理由を画面に表示し、</text>
+        <text class="arch-sub" x="738" y="238" fill="var(--ink-2)">事象を監査ログへ記録</text>
+
+        <!-- 出口 → 出力先 -->
+        <g fill="none" stroke="var(--line-2)" stroke-width="1.6">
+          <path d="M924 150 H 946 Q 958 150 958 130 V 60" marker-end="url(#ar)"/>
+          <path d="M924 150 H 946 Q 958 150 958 140 V 114" marker-end="url(#ar)"/>
+          <path d="M924 150 H 946 Q 958 150 958 160 V 168" marker-end="url(#ar)"/>
+          <path d="M924 150 H 946 Q 958 150 958 170 V 222" marker-end="url(#ar)"/>
+        </g>
+
+        <!-- 出力先 -->
+        <g>
+          <rect x="958" y="36" width="206" height="42" rx="3" fill="var(--card)" stroke="var(--line-2)"/>
+          <text class="arch-label" x="972" y="55">画面（回答＋根拠）</text>
+          <text class="arch-sub" x="972" y="70">出典から原本を開ける</text>
+
+          <rect x="958" y="90" width="206" height="42" rx="3" fill="var(--card)" stroke="var(--line-2)"/>
+          <text class="arch-label" x="972" y="109">Word出力（問答集ほか）</text>
+          <text class="arch-sub" x="972" y="124">同じマスキングを通す</text>
+
+          <rect x="958" y="144" width="206" height="42" rx="3" fill="var(--card)" stroke="var(--line-2)"/>
+          <text class="arch-label" x="972" y="163">AI回答履歴DB</text>
+          <text class="arch-sub" x="972" y="178">保持期間と閲覧権限を設定</text>
+
+          <rect x="958" y="198" width="206" height="42" rx="3" fill="var(--card)" stroke="var(--line-2)"/>
+          <text class="arch-label" x="972" y="217">applog（運用ログ）</text>
+          <text class="arch-sub" x="972" y="232">本文は残さない</text>
+        </g>
+
+        <!-- 横断バンド -->
+        <rect x="16" y="330" width="1148" height="72" rx="4" fill="var(--card-2)" stroke="var(--line-2)"/>
+        <text class="arch-note" x="34" y="356">横断①　認可（既存の権限台帳）</text>
+        <text class="arch-sub" x="34" y="376" fill="var(--ink-2)">誰がどのデータ群を見てよいかを決め、RAGのWHERE句で順位付けの前に絞る。</text>
+        <text class="arch-sub" x="34" y="392" fill="var(--ink-2)">ガードレールでは代替できない、最大の情報漏えい対策。</text>
+        <line x1="596" y1="346" x2="596" y2="386" stroke="var(--line-2)" stroke-width="1"/>
+        <text class="arch-note" x="620" y="356">横断②　監査ログ</text>
+        <text class="arch-sub" x="620" y="376" fill="var(--ink-2)">ブロック・マスクの発生を、誰の・どの機能の・どの分類かで記録。</text>
+        <text class="arch-sub" x="620" y="392" fill="var(--ink-2)">閾値の見直しとセキュリティ審査の証跡に使う。</text>
+
+        <!-- 下段の注記 -->
+        <rect x="16" y="418" width="1148" height="60" rx="4" fill="var(--brand-soft)"/>
+        <text class="arch-band" x="34" y="442">設計の要点</text>
+        <text class="arch-sub" x="140" y="442" fill="var(--ink-2)">実装位置は <tspan class="arch-mono">ai_client.chat()</tspan> の内側。全機能が必ず通るため、1か所の変更で漏れなく効き、27画面の呼び出し側は無改修。</text>
+        <text class="arch-sub" x="140" y="464" fill="var(--ink-2)">検査は「毎回」と「索引時に1回」を分ける。社内資料は内容が変わらないので、毎回検査すると費用と遅延だけが増える。</text>
+      </svg>
+      <p class="fig-cap">入力5系統を信頼度で分け、入口・モデル・出口の3層で検査する。認可と監査ログは全体を横断する。</p>
+    </div>
+
+    <h3>実装の骨格</h3>
+    <pre><b>def</b> chat(messages, *, feature, ...):
+    <i># ① 入口：利用者入力・添付・外部テキストを、種別ごとに評価</i>
+    verdict = guardrails.check_input(messages)        <i># ApplyGuardrail ＋ 自前PII</i>
+    <b>if</b> verdict.blocked:
+        applog.event(<i>"guardrail"</i>, feature, action=<i>"block"</i>, kind=verdict.kind)
+        <b>return</b> _refusal(verdict)                     <i># fail-closed。素通ししない</i>
+
+    <i># ② モデル：マスク済みのメッセージだけを渡す</i>
+    answer = _call_model(verdict.masked_messages)
+
+    <i># ③ 出口：応答を検査し、保存前にマスクした形へ</i>
+    out = guardrails.check_output(answer)
+    response_store.save(out.masked)                   <i># 履歴DB・ログは常にマスク後</i>
+    <b>return</b> out.text</pre>
+    <p>
+      呼び出し側（27画面）は一切変更しません。<code>ai_client</code> が唯一の通り道であることが、
+      この設計が成立する前提です。
+    </p>
+  </section>
+
+  <!-- ══════════ 3 ══════════ -->
+  <section>
+    <h2 class="sec"><span class="no">3</span>Guardrailsで担保できること</h2>
+    <div class="scroll">
+      <table>
+        <thead><tr><th style="width:26%">機能</th><th>本アプリでの使いどころ</th></tr></thead>
+        <tbody>
+          <tr><td>コンテンツフィルタ</td><td>憎悪・侮辱・性的・暴力・不正行為、そして<b>プロンプト攻撃</b>の検出</td></tr>
+          <tr><td>拒否トピック</td><td>自社で定義。例：個別銘柄の投資助言、特定個人の人事評価の推論、係争中案件の見解</td></tr>
+          <tr><td>単語フィルタ</td><td>社内コードネーム、未公表プロジェクト名</td></tr>
+          <tr><td>機密情報フィルタ</td><td>PIIエンティティ＋正規表現。<b>ブロック</b>と<b>マスク</b>を使い分ける</td></tr>
+          <tr><td>グラウンディングチェック</td><td>根拠資料から外れた回答の抑止（既存の「数値を作らない」方針の補強）</td></tr>
+          <tr><td><code>ApplyGuardrail</code></td><td>モデルを通さないテキスト（ウェブ本文・X投稿・添付）にも同じ検査をかけられる</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ══════════ 4 ══════════ -->
+  <section>
+    <h2 class="sec"><span class="no">4</span>足りない部分<small>作るのは3つだけ</small></h2>
+    <p>
+      「ガードレールで塞がらない点」を挙げると数は増えますが、<b>STAGE 1で新たに作る必要があるのは3つ</b>です。
+      残りは<b>設定で足せるもの</b>、<b>すでに手当て済みのもの</b>、<b>STAGE 2へ送るもの</b>に分かれます。
+      まずこの仕分けを見てください。
+    </p>
+    <div class="scroll">
+      <table>
+        <thead><tr><th style="width:12%">扱い</th><th style="width:24%">項目</th><th style="width:40%">中身</th><th>作業量の目安</th></tr></thead>
+        <tbody>
+          <tr>
+            <td rowspan="3"><span class="pill brand">自前で作る</span></td>
+            <td><b>日本語PIIの検査</b></td>
+            <td>氏名・住所・電話・メール・マイナンバー・口座・社員番号を、正規表現と辞書で検出する関数。
+              Guardrailsの機密情報フィルタと二重にかける</td>
+            <td>関数1つ。<b>1〜2人日</b>＋パターンの追加は運用で育てる</td>
+          </tr>
+          <tr>
+            <td><b>外部テキストの隔離</b></td>
+            <td>ウェブ本文・X投稿・添付テキストを、プロンプト内で<b>引用ブロックとして囲い</b>、
+              「これは資料であって指示ではない」と明示する。注入の実害を止める</td>
+            <td>プロンプト組み立ての<b>1か所</b>。0.5人日</td>
+          </tr>
+          <tr>
+            <td><b>保存前マスキング</b></td>
+            <td>履歴DB・applog・Word出力に書き込む前に、検査済みテキストへ置き換える</td>
+            <td>保存経路の<b>3か所</b>を同じ関数に通す。1人日</td>
+          </tr>
+          <tr>
+            <td rowspan="2"><span class="pill ok">設定で足す</span></td>
+            <td>業務固有の機密</td>
+            <td>未公表案件・コードネームなどを、Guardrailsの<b>拒否トピック・単語フィルタ</b>に登録する。
+              コードは書かない</td>
+            <td>コンソール設定。<b>0.5人日</b>＋語彙の合意</td>
+          </tr>
+          <tr>
+            <td>失敗時の扱い（fail-closed）</td>
+            <td>検査APIが落ちたら回答しない。実装は<code>ai_client</code>の分岐<b>数行</b></td>
+            <td>実装に含まれる</td>
+          </tr>
+          <tr>
+            <td rowspan="2"><span class="pill slate">すでに<br>手当て済み</span></td>
+            <td><b>認可</b>（誰が何を見てよいか）</td>
+            <td>権限台帳とRAGのWHERE句で実装済み。<b>最大の情報漏えい対策はここ</b>で、ガードレールでは代替できない
+              — 逆に言えば、<b>今回あらためて作るものはありません</b></td>
+            <td>追加作業なし</td>
+          </tr>
+          <tr>
+            <td>根拠のない数値の抑止</td>
+            <td>「数値を作らない」方針・出典表示・未取得の明示として実装済み。
+              Guardrailsのグラウンディングチェックが上乗せになる</td>
+            <td>追加作業なし</td>
+          </tr>
+          <tr>
+            <td><span class="pill copper">STAGE 2へ</span></td>
+            <td>ファイル本体の検査</td>
+            <td>画像内の文字・隠しシート・暗号化ZIPなど、テキスト抽出の前段。Macie等の専用サービスが要る</td>
+            <td>STAGE 1では<b>拡張子・サイズ・抽出可否の制限で妥協</b>する</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="note">
+      <b>作業量は合計で3〜4人日の見込みです。</b>
+      多く見えるのは「気をつける点」であって「作るもの」ではありません。
+      とくに最大のリスクである<b>認可はすでに動いており</b>、今回はそこに検査層を重ねる作業です。
+    </div>
+  </section>
+
+  <!-- ══════════ 5 ══════════ -->
+  <section>
+    <h2 class="sec"><span class="no">5</span>費用と遅延の設計<small>ここを外すと後で効く</small></h2>
+    <p>
+      Guardrailsはテキスト量に応じた課金です。<b>RAGの根拠を毎回すべて検査すると、高額かつ低速になります。</b>
+      検査の頻度を対象ごとに分けます。
+    </p>
+    <div class="scroll">
+      <table>
+        <thead><tr><th style="width:30%">対象</th><th style="width:20%">頻度</th><th>理由</th></tr></thead>
+        <tbody>
+          <tr><td>①利用者入力／②添付テキスト</td><td><span class="pill brand">毎回</span></td><td>そのつど内容が変わる。混入を止める最前線</td></tr>
+          <tr><td>④ウェブ本文／⑤X投稿・見出し</td><td><span class="pill brand">毎回</span></td><td>外部・未検証。注入と有害表現の主経路</td></tr>
+          <tr><td>出力（モデルの応答）</td><td><span class="pill brand">毎回</span></td><td>最後の砦。保存前マスキングもここで行う</td></tr>
+          <tr><td>③RAG検索結果（社内資料）</td><td><span class="pill ok">索引時に1回</span></td><td>内容が変わらないので、毎回検査する意味がない。結果をメタデータに保存して使い回す</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p>
+      遅延は前後で2コール増えます（体感で数百ミリ秒）。現在の回答は30秒前後かかるため相対的な影響は小さいものの、
+      長文は分割して並列に評価します。
+    </p>
+  </section>
+
+  <footer class="doc">
+    関連資料：PoC本番移行 2段階リリース計画（STAGE 1 タスク②）／アクセス制御 設計と実装（横断①の詳細）。<br>
+    実装対象：<code>ai_client.py</code>（チョークポイント）、<code>knowledge_rag.py</code>（RAG・ウェブ取得）、
+    <code>response_store.py</code>・<code>applog.py</code>（保存前マスキング）、<code>collectors/sns_x.py</code>（外部テキスト）。
+  </footer>
+
+</div>
+
+<script>
+  document.documentElement.setAttribute("lang", "ja-JP");
+  if (!document.querySelector("meta[name=viewport]")) {
+    var vp = document.createElement("meta");
+    vp.name = "viewport"; vp.content = "width=device-width, initial-scale=1";
+    document.head.appendChild(vp);
+  }
+</script>
