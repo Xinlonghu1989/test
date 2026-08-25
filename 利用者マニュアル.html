@@ -1,0 +1,1016 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>AI経営診断・株主総会アプリ 利用者マニュアル_v2</title>
+  <style>
+    :root {
+      --ink: #1c1c1e;
+      --muted: #5b5f66;
+      --faint: #8a8f97;
+      --line: #e3e5e8;
+      --line-soft: #f1f2f4;
+      --bg: #fff;
+      --soft: #fafbfc;
+      --brand: #6b1f34;
+      --brand-soft: #fbf3f5;
+      --ok: #1f7a4d;
+      --ok-bg: #eef7f1;
+      --warn: #8a6b1f;
+      --warn-bg: #fdf6e7;
+      --alarm: #a3232f;
+      --alarm-bg: #fdeff0;
+    }
+    * {
+      box-sizing: border-box;
+    }
+    body {
+      margin: 0;
+      padding: 0;
+      background: var(--bg);
+      color: var(--ink);
+      font-family: "Yu Gothic", "Hiragino Kaku Gothic ProN", Meiryo, system-ui, sans-serif;
+      font-size: 14px;
+      line-height: 1.85;
+      -webkit-font-smoothing: antialiased;
+    }
+    .wrap {
+      max-width: 940px;
+      margin: 0 auto;
+      padding: 48px 28px 96px;
+    }
+    header.cover {
+      border-bottom: 3px solid var(--brand);
+      padding-bottom: 22px;
+      margin-bottom: 34px;
+    }
+    header.cover .eyebrow {
+      font-size: 12px;
+      letter-spacing: .14em;
+      color: var(--brand);
+      font-weight: 700;
+    }
+    header.cover h1 {
+      font-size: 27px;
+      margin: 8px 0 6px;
+      letter-spacing: .01em;
+    }
+    header.cover p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 13px;
+    }
+    h2 {
+      font-size: 20px;
+      margin: 52px 0 6px;
+      padding-top: 22px;
+      border-top: 1px solid var(--line);
+    }
+    h2 .num {
+      display: inline-block;
+      min-width: 30px;
+      height: 30px;
+      line-height: 30px;
+      text-align: center;
+      background: var(--brand);
+      color: #fff;
+      border-radius: 8px;
+      font-size: 14px;
+      margin-right: 10px;
+    }
+    h3 {
+      font-size: 15.5px;
+      margin: 30px 0 8px;
+      color: var(--brand);
+    }
+    h4 {
+      font-size: 14px;
+      margin: 20px 0 6px;
+    }
+    p {
+      margin: 8px 0;
+    }
+    .lead {
+      color: var(--muted);
+      margin-bottom: 18px;
+    }
+    ol, ul {
+      margin: 8px 0 8px 1.4em;
+      padding: 0;
+    }
+    li {
+      margin: 5px 0;
+    }
+    ol.steps {
+      counter-reset: s;
+      list-style: none;
+      margin-left: 0;
+    }
+    ol.steps > li {
+      counter-increment: s;
+      position: relative;
+      padding-left: 38px;
+      margin: 11px 0;
+    }
+    ol.steps > li::before {
+      content: counter(s);
+      position: absolute;
+      left: 0;
+      top: 1px;
+      width: 25px;
+      height: 25px;
+      line-height: 25px;
+      text-align: center;
+      border-radius: 50%;
+      background: var(--brand-soft);
+      color: var(--brand);
+      font-weight: 700;
+      font-size: 12px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 14px 0;
+      font-size: 13px;
+    }
+    th, td {
+      border: 1px solid var(--line);
+      padding: 8px 11px;
+      text-align: left;
+      vertical-align: top;
+    }
+    th {
+      background: var(--soft);
+      font-weight: 700;
+      white-space: nowrap;
+    }
+    code, .ui {
+      background: var(--soft);
+      border: 1px solid var(--line);
+      border-radius: 5px;
+      padding: 1px 7px;
+      font-size: 12.5px;
+      font-family: inherit;
+      white-space: nowrap;
+    }
+    .ui {
+      color: var(--brand);
+      font-weight: 600;
+    }
+    .note, .warn, .tip {
+      border-radius: 9px;
+      padding: 13px 17px;
+      margin: 16px 0;
+      font-size: 13px;
+    }
+    .note {
+      background: var(--soft);
+      border: 1px solid var(--line);
+    }
+    .warn {
+      background: var(--alarm-bg);
+      border: 1px solid #f0cdd1;
+    }
+    .tip {
+      background: var(--ok-bg);
+      border: 1px solid #cfe6da;
+    }
+    .note b, .warn b, .tip b {
+      display: block;
+      margin-bottom: 3px;
+    }
+    .sig {
+      display: inline-block;
+      width: 11px;
+      height: 11px;
+      border-radius: 50%;
+      vertical-align: -1px;
+      margin-right: 5px;
+    }
+    .sig.g { background: #1f7a4d; }
+    .sig.y { background: #c99a2e; }
+    .sig.r { background: #a3232f; }
+    .toc {
+      background: var(--soft);
+      border: 1px solid var(--line);
+      border-radius: 11px;
+      padding: 18px 24px;
+      margin-bottom: 8px;
+    }
+    .toc h2 {
+      border: 0;
+      margin: 0 0 8px;
+      padding: 0;
+      font-size: 15px;
+    }
+    .toc ol {
+      margin-left: 1.2em;
+    }
+    .toc a {
+      color: var(--ink);
+      text-decoration: none;
+    }
+    .toc a:hover {
+      color: var(--brand);
+      text-decoration: underline;
+    }
+    /* タブ切替 */
+    .tabs {
+      display: flex;
+      gap: 4px;
+      margin: 26px 0 34px;
+      border-bottom: 2px solid var(--line);
+    }
+    .tabs button {
+      appearance: none;
+      background: none;
+      border: none;
+      border-bottom: 3px solid transparent;
+      margin-bottom: -2px;
+      padding: 10px 20px;
+      font: inherit;
+      font-size: 14.5px;
+      font-weight: 700;
+      color: var(--muted);
+      cursor: pointer;
+      letter-spacing: .02em;
+    }
+    .tabs button:hover {
+      color: var(--brand);
+    }
+    .tabs button.active {
+      color: var(--brand);
+      border-bottom-color: var(--brand);
+    }
+    .tab-panel {
+      display: none;
+    }
+    .tab-panel.active {
+      display: block;
+    }
+    .tab-panel > h2:first-of-type {
+      border-top: 0;
+      margin-top: 0;
+      padding-top: 0;
+    }
+    /* 利用にあたっての注意 */
+    h2 .num.pre {
+      background: var(--alarm);
+    }
+    .policy ul {
+      list-style: none;
+      margin-left: 0;
+    }
+    .policy ul > li {
+      position: relative;
+      padding-left: 19px;
+      margin: 7px 0;
+    }
+    .policy ul > li::before {
+      content: "";
+      position: absolute;
+      left: 4px;
+      top: .72em;
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--brand);
+      opacity: .55;
+    }
+    .policy ul ul {
+      margin: 6px 0 2px;
+    }
+    .policy ul ul > li {
+      padding-left: 17px;
+      margin: 4px 0;
+    }
+    .policy ul ul > li::before {
+      width: 6px;
+      height: 6px;
+      border-radius: 2px;
+      top: .78em;
+      opacity: .35;
+    }
+    .policy .ex {
+      display: block;
+      margin-top: 3px;
+      color: var(--muted);
+      font-size: 12.5px;
+      background: var(--soft);
+      border-left: 3px solid var(--line);
+      border-radius: 0 6px 6px 0;
+      padding: 6px 11px;
+    }
+    .policy td.head {
+      background: var(--soft);
+      font-weight: 700;
+      white-space: nowrap;
+    }
+    .policy td.ok { background: var(--ok-bg); }
+    .policy td.cond { background: var(--warn-bg); }
+    .policy td.no { background: var(--alarm-bg); }
+    .policy .plain {
+      margin: 3px 0;
+    }
+    .policy .plain.sub {
+      margin-left: 1.2em;
+      font-size: 12.5px;
+      color: var(--muted);
+    }
+    /* APPENDIX（付録）は本編と区切って読ませる */
+    .policy h3.appendix-h {
+      margin-top: 36px;
+      padding-top: 18px;
+      border-top: 2px solid var(--line);
+      color: var(--muted);
+      font-size: 15px;
+      letter-spacing: .04em;
+    }
+    .policy h3.appendix-h + .plain {
+      margin-top: 6px;
+    }
+    .scope {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin: 14px 0;
+    }
+    .scope span {
+      font-size: 12px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      padding: 4px 12px;
+      color: var(--muted);
+    }
+    footer {
+      margin-top: 60px;
+      padding-top: 18px;
+      border-top: 1px solid var(--line);
+      color: var(--faint);
+      font-size: 12px;
+    }
+    @media print {
+      .wrap {
+        max-width: none;
+        padding: 0;
+      }
+      .tabs {
+        display: none;
+      }
+      .tab-panel {
+        display: block;
+      }
+      .tab-panel + .tab-panel {
+        page-break-before: always;
+      }
+      h2 {
+        page-break-before: always;
+        border-top: 0;
+      }
+      h2:first-of-type {
+        page-break-before: avoid;
+      }
+      .toc {
+        page-break-after: always;
+      }
+    }
+  </style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="cover">
+    <div class="eyebrow">HANKYU HANSHIN GROUP</div>
+    <h1>AI経営診断・株主総会アプリ 利用者マニュアル_v2</h1>
+    <p>業務担当者向け／経営診断・株主総会Q&amp;Aサポート</p>
+  </header>
+
+  <nav class="tabs" role="tablist">
+    <button type="button" class="active" data-tab="notice" role="tab" aria-selected="true">利用にあたっての注意</button>
+    <button type="button" data-tab="manual" role="tab" aria-selected="false">操作マニュアル</button>
+  </nav>
+
+  <!-- タブ1: 利用にあたっての注意 -->
+  <div class="tab-panel active" id="panel-notice" role="tabpanel">
+    <h2 id="s0" class="policy-h"><span class="num pre">！</span>利用にあたっての注意</h2>
+    <div class="policy">
+
+      <h3>はじめに</h3>
+      <ul>
+        <li>AI経営診断アプリ（以下、「本アプリ」）は、計画策定、計画と実績の差分確認、環境変化への先読み対応を支援する機能を具備したアプリです。</li>
+        <li>本アプリは、機密性A情報を含む経営情報を安全に扱える環境として整備しています。</li>
+        <li>より情報を安全に扱うために、入力時と出力結果は注意事項を確認してください。</li>
+      </ul>
+      <p class="plain sub">※セキュリティ対策の整備項目は「APPENDIX：①安全管理整備事項」に記載</p>
+
+      <h3>入力時の注意事項</h3>
+      <ul>
+        <li>以下の情報は、AIへの指示入力欄およびアップロードファイルとして入力をお控えください。
+          <ul>
+            <li>個人情報（人名や住所等）</li>
+            <li>自身の管理範囲外の機密情報</li>
+            <li>利用規約や著作権を侵害する外部情報（有料記事の本文等）</li>
+          </ul>
+        </li>
+        <li>入力してよいか判断に迷う場合は、サポート窓口（BX推進部：XXX）までご相談ください。</li>
+      </ul>
+      <p class="plain sub">※詳細な入力時の注意事項は「APPENDIX：②入力時の注意事項詳細」に記載</p>
+
+      <h3>出力結果の注意事項</h3>
+      <ul>
+        <li>本アプリから出力される結果は<b>補助情報として位置づけ</b>、内容を十分に確認のうえ活用してください。</li>
+      </ul>
+      <p class="plain sub">※詳細な出力結果の注意事項は「APPENDIX：③出力結果の注意事項詳細」に記載</p>
+
+      <h3>その他利用時の注意</h3>
+      <ul>
+        <li>アクセス権限外利用／権限の譲渡、他者へ危害を加える利用、公共の場所での利用等、一般的に避けるべき行為に関しては、通常の情報セキュリティ上の遵守事項と同様のため、社内の情報セキュリティ規程および関連ルールに従ってください。</li>
+      </ul>
+
+      <h3>サポート窓口</h3>
+      <ul>
+        <li>本アプリ利用時に問題や不具合を発見した場合や、改善要望・質問に関しては、サポート窓口（BX推進部：XXX）までご連絡ください。</li>
+        <li>社内のAI教育コンテンツ「XXXX」も、必要に応じてご活用ください。</li>
+      </ul>
+
+      <h3 class="appendix-h">APPENDIX：①安全管理整備事項</h3>
+      <p class="plain">以下のような事項をセキュリティ対策として整備しています。</p>
+      <ul>
+        <li>入力データがAI学習に利用されないインフラ環境の契約管理</li>
+        <li>AIの出力制御（ガードレール機能）による、個人情報および非倫理出力の防止</li>
+        <li>利用者の部署や権限に応じたAI回答管理</li>
+        <li>その他、社内で定めたセキュリティ要件に基づく稼働環境の整備</li>
+      </ul>
+
+      <h3 class="appendix-h">APPENDIX：②入力時の注意事項詳細</h3>
+      <p class="plain">本アプリに入力できる情報の範囲詳細は、下表をご確認ください。</p>
+      <table>
+        <tbody>
+          <tr>
+            <th></th>
+            <th>社内情報 ※HHHDが作成・管理する情報を含む</th>
+            <th>社外情報</th>
+          </tr>
+          <tr>
+            <td class="head">公開情報</td>
+            <td class="ok">入力できます。</td>
+            <td class="cond">
+              <p class="plain">・第三者の権利（著作権を含む知的財産権）を侵害しうる情報でない場合に限り、入力できます。</p>
+              <p class="plain sub">特に、書籍や有料記事の本文等は権利侵害リスクが高いため、入力を避けてください。</p>
+              <p class="plain">・ただし、特定の著作物を引用・再現させることを目的とした入力はしないでください。</p>
+            </td>
+          </tr>
+          <tr>
+            <td class="head">機密情報</td>
+            <td class="cond">自身の管理範囲内もしくは、情報の管理責任者の許可がある場合に限り、入力できます。</td>
+            <td class="no">入力しないでください。</td>
+          </tr>
+          <tr>
+            <td class="head">個人情報</td>
+            <td class="no">入力しないでください。</td>
+            <td class="no">入力しないでください。</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h3 class="appendix-h">APPENDIX：③出力結果の注意事項詳細</h3>
+      <p class="plain">出力結果をより安全に活用する際には、以下のポイントに注意してください。</p>
+      <ul>
+        <li><b>（非倫理性の確認）非倫理的な出力が含まれていないか：</b>
+          出力のバイアスがかかる可能性があり、特定の組織・部署への偏見を助長する記載や、差別的・暴力的な記載など、非倫理的な内容が含まれていないことをご確認ください。</li>
+        <li><b>（正確性・根拠の確認）回答の根拠が確認できるか：</b>
+          ハルシネーションのリスクがあるため、重要な数値、事実関係、外部情報については、引用資料の確認や他の情報と照らし合わせる等、必ず情報源をご確認ください。</li>
+        <li><b>（適合性の確認）回答が自社の実態に合っているか：</b>
+          AIは汎用的な知見も含めて回答をすることがあるため、利用者視点での事業環境、組織体制、経営方針を踏まえたうえで、AIの回答が適切かご判断ください。</li>
+        <li><b>（権利・利用条件の確認）外部情報の利用に伴う権利上・利用条件上の問題がないか：</b>
+          AIの回答に外部情報ソース（Web検索情報等）が含まれる場合、そのまま転載、配布、公表すると、著作権その他の権利侵害や利用条件違反となる可能性があります。外部情報を含む回答はそのまま利用せず、出典、利用条件、権利関係を確認してください。</li>
+        <li><b>（共有先／利用先の確認）社内連携先は適切か：</b>
+          機密情報の提示はユーザー単位で付与されているため、本アプリの出力結果を社内の他の方へ送付・共有する際は、出力結果の内容を連携先に共有してよいかご判断ください。</li>
+      </ul>
+
+    </div>
+  </div>
+
+  <div class="tab-panel" id="panel-manual" role="tabpanel">
+    <div class="toc">
+      <h2>目次</h2>
+      <ol>
+        <li><a href="#s1">はじめに ― ログインとホーム画面</a></li>
+        <li><a href="#s2">センシング（経営ダッシュボード）― 今どこを見るべきかを知る</a></li>
+        <li><a href="#s3">計画の策定・確認と、実態との乖離検証</a></li>
+        <li><a href="#s4">世の中の動向・変化を知る／経営AI相談</a></li>
+        <li><a href="#s5">株主総会Q&amp;A ― 想定質問から当日検索まで</a></li>
+        <li><a href="#s6">管理者設定 ― 参照データと利用状況を確認する</a></li>
+      </ol>
+      <div class="scope">
+        <span>ホーム画面の並びに沿った章立てです</span>
+        <span>画面に出るボタン名をそのまま表記しています</span>
+      </div>
+    </div>
+
+    <!-- 第1章 -->
+    <h2 id="s1"><span class="num">1</span>はじめに ― ログインとホーム画面</h2>
+
+    <h3>ログインする</h3>
+    <ol class="steps">
+      <li>ブラウザでアプリのURLを開きます。</li>
+      <li>ログイン画面でユーザー名とパスワードを入力します（配布された資格情報を使用）。</li>
+    </ol>
+
+    <h3>2つのアプリを切り替える</h3>
+    <p>左メニューのいちばん上に、<span class="ui">経営診断</span> と <span class="ui">株主総会Q&amp;A</span> の切り替えがあります。用途に応じて切り替えてください。</p>
+
+    <table>
+      <tbody>
+        <tr><th>切り替え</th><th>開くもの</th><th>使う場面</th></tr>
+        <tr><td><span class="ui">経営診断</span></td>
+            <td>ホーム画面（機能の入口3つ＋<span class="ui">経営AI相談</span>）</td>
+            <td>日々の状況把握、計画の策定・点検、論点整理</td></tr>
+        <tr><td><span class="ui">株主総会Q&amp;A</span></td>
+            <td>6工程のホーム（<span class="ui">想定質問の洗い出し</span>／<span class="ui">回答案作成</span>／<span class="ui">点検・回答統合</span>／<span class="ui">問答集・承認管理</span>／<span class="ui">壁打ち</span>／<span class="ui">当日回答検索</span>）</td>
+            <td>株主総会に向けた想定質問と回答案の作成</td></tr>
+      </tbody>
+    </table>
+
+    <p>左メニューのいちばん下には <span class="ui">管理者設定</span> の折り畳みがあり、参照データや利用状況を確認できます（第6章）。</p>
+
+    <div class="note">
+      <b>機能の一覧は左メニューではなく「ホーム画面」にあります</b>
+      左メニューには機能名を並べていません。<b>ホーム画面が目次</b>で、そこから各機能へ入り、
+      画面左上の <span class="ui">← 戻る</span> でホームへ戻ります。
+    </div>
+
+    <h3>ホーム画面の見方</h3>
+    <p>経営診断のホームは、上段が<b>いまの状況</b>、境界線をはさんだ下段が<b>これからの作業</b>という並びです。</p>
+    <table>
+      <tbody>
+        <tr><th>場所</th><th>出るもの</th><th>使い方</th></tr>
+        <tr><td>上段・左上</td>
+            <td>市況の5指標（<span class="ui">HHHD株価</span>／<span class="ui">日経平均</span>／<span class="ui">為替 $/¥</span>／<span class="ui">金利 O/N</span>／<span class="ui">電力価格</span>）</td>
+            <td>前日比と5段階の矢印で、当日の相場と事業コストの動きを確認します</td></tr>
+        <tr><td>上段・左下</td>
+            <td><span class="ui">今日のニュース</span></td>
+            <td>6事業それぞれの見出しと書き出しを、10秒ごとに1件ずつ送ります。下の丸い点を押すとその事業へ移ります</td></tr>
+        <tr><td>上段・右</td>
+            <td><span class="ui">SNS共起ネットワーク</span></td>
+            <td>X（旧Twitter）投稿で、グループ事業の名詞（赤）が、どんな形容詞・動詞（青）と一緒に語られたかの図。右上の <span class="ui">＋</span> で詳細版へ移ります</td></tr>
+        <tr><td>下段</td>
+            <td>機能カード3枚＋<span class="ui">経営AI相談</span>の帯</td>
+            <td><span class="ui">計画の策定・確認を支援する</span>（第3章）／<span class="ui">計画と実態の乖離を検証する</span>（第3章）／<span class="ui">世の中の動向・変化を知る</span>（第4章）</td></tr>
+      </tbody>
+    </table>
+    <div class="note">
+      <b>数字は自動で最新化されます</b>
+      市況・ニュース・SNSは、画面を開いた時点と15分ごとに、期限が来たものだけ裏で取り直します。
+      取得できていない指標は推測値で埋めず「未取得」と表示します。
+    </div>
+
+    <h3>画面上部の操作</h3>
+    <table>
+      <tbody>
+        <tr><th>操作</th><th>働き</th></tr>
+        <tr><td>左端の <span class="ui">← 戻る</span></td>
+            <td>1つ前の画面（多くはホーム）へ戻ります。どの画面でも同じ位置にあり、スクロールしても動きません。</td></tr>
+        <tr><td><span class="ui">文字</span>：<span class="ui">小</span>／<span class="ui">中</span>／<span class="ui">大</span></td>
+            <td>画面全体の文字サイズを切り替えます。会議室のプロジェクタで見えにくいときは <span class="ui">大</span> をお試しください。</td></tr>
+        <tr><td><span class="ui">マニュアル</span></td>
+            <td>この操作マニュアルを別タブで開きます。</td></tr>
+      </tbody>
+    </table>
+
+    <h3>作業を終えるとき</h3>
+    <p>左メニューのいちばん下の <span class="ui">ログアウト</span> を押してください。<span class="ui">経営AI相談</span> の会話履歴は、ログアウトやブラウザを閉じた時点でサーバーから削除されます。続きを翌日に持ち越すことはできませんので、残したい内容は手元に控えてください。</p>
+
+    <div class="note">
+      <b>質問と回答案は保存されます</b>
+      会話履歴は消えますが、株主総会Q&amp;Aの<b>質問・回答案・設定は保存</b>され、次に開いたときも残っています。また、AIが返した回答は <span class="ui">管理者設定</span> ＞ <span class="ui">AI回答履歴</span> に記録されます。
+    </div>
+
+    <!-- 第2章 -->
+    <h2 id="s2"><span class="num">2</span>センシング（経営ダッシュボード）</h2>
+    <p class="lead">6事業の外部環境と内部KPIを一画面で見て、<b>今どの事業を優先して確認すべきか</b>を判断する画面です。</p>
+
+    <h3>操作の手順</h3>
+    <ol class="steps">
+      <li>ホームの <span class="ui">世の中の動向・変化を知る</span> → <span class="ui">重要指標を見る</span> を開きます。</li>
+      <li>最上部の <b>全体状況</b> で、要対応の事業数・注視すべき指標の件数を確認します。</li>
+      <li>その下の <b>連携状況</b> の一文で、公開データがいつ時点のもので、何が要対応かを確認します。</li>
+      <li><b>左側</b>の6事業カードで信号色を見て、気になる事業のカードを押します。</li>
+      <li><b>右側</b>の詳細パネルに、その事業の指標一覧と推移が出ます。左右に並んでいるので、スクロールせずに見比べられます。</li>
+      <li>ページ最下段の <span class="ui">SNS共起ネットワーク</span>（折りたたみ）を押すと、世間の話題の詳細図が開きます。</li>
+    </ol>
+
+    <h3>画面の見方</h3>
+
+    <h4>信号色</h4>
+    <table>
+      <tbody>
+        <tr><th>色</th><th>意味</th><th>とるべき行動</th></tr>
+        <tr><td><span class="sig g"></span>正常</td><td>選択中の指標がすべて閾値内</td><td>特になし</td></tr>
+        <tr><td><span class="sig y"></span>注視</td><td>閾値に近づいている指標がある</td><td>推移を確認しておく</td></tr>
+        <tr><td><span class="sig r"></span>要対応</td><td>閾値を超えた指標がある</td><td>詳細パネルで内容を確認し、必要なら計画点検へ</td></tr>
+      </tbody>
+    </table>
+
+    <h4>数値の脇にある区分</h4>
+    <p>このアプリは<b>根拠のない数値を作りません</b>。数値の脇には必ず次のいずれかが付きます。</p>
+    <table>
+      <tbody>
+        <tr><th>表示</th><th>意味</th></tr>
+        <tr><td>実データ</td><td>公開データから実際に取得できた値。出典も併記されます</td></tr>
+        <tr><td>取得待ち</td><td>取得対象だが、まだ値が入っていない</td></tr>
+        <tr><td>未連携</td><td>データがまだ接続されていない。数値は表示されません</td></tr>
+      </tbody>
+    </table>
+
+    <div class="note">
+      <b>「未連携」は不具合ではありません</b>
+      売上・営業利益・人件費などの内部KPIや、訪日外客数・旅客輸送人員などは現在データが接続されていません。アプリは推測値で埋めず「未連携」と表示します。<b>その指標では判断できない</b>ということ自体が判断材料です。
+    </div>
+
+    <h3>閾値を変える</h3>
+    <p>信号色の基準は、事業ごとに変更できます。入口は画面右上の <span class="ui">⚙ 監視設定</span> です。</p>
+    <ol class="steps">
+      <li>画面右上の <span class="ui">⚙ 監視設定</span> を押します（監視設定画面が開きます）。</li>
+      <li>左側の「指標カタログ」から監視したい指標にチェックを入れ、<span class="ui">選択を確定</span> を押します。</li>
+      <li>右側で、指標ごとの閾値（例：<code>日平均 35℃ 以上</code>）と監視スパン（日次・週次・月次など）を設定します。</li>
+      <li>保存すると、その場で事業カードの信号色に反映されます。</li>
+    </ol>
+
+    <div class="warn">
+      <b>監視設定は全利用者で共有されます</b>
+      閾値や監視指標の変更は、あなたの画面だけでなく<b>全員の画面に反映されます</b>。誰が変更したかの記録は残りませんので、変更する際は関係者への共有をお願いします。
+    </div>
+
+    <h4>閾値の書き方</h4>
+    <table>
+      <tbody>
+        <tr><th>書き方</th><th>意味</th></tr>
+        <tr><td><code>150.00円 超過</code></td><td>水準が150円を超えたら発報</td></tr>
+        <tr><td><code>前週比 +15.0% 以上</code></td><td>前週から15%以上上昇したら発報</td></tr>
+        <tr><td><code>前年比 −5.0% 以下</code></td><td>前年から5%以上下落したら発報</td></tr>
+        <tr><td><code>前月比 ±10.0% 以上</code></td><td>上下どちらでも10%以上動いたら発報</td></tr>
+      </tbody>
+    </table>
+    <p>閾値の少し手前まで来ると<span class="sig y"></span>注視、超えると<span class="sig r"></span>要対応になります。</p>
+
+    <!-- 第3章 -->
+    <h2 id="s3"><span class="num">3</span>計画の策定・確認と、実態との乖離検証</h2>
+    <p class="lead">計画にまつわる画面は4つです。ホームの <span class="ui">計画の策定・確認を支援する</span> と
+      <span class="ui">計画と実態の乖離を検証する</span> の2枚のカードから入ります。</p>
+
+    <table>
+      <tbody>
+        <tr><th>画面</th><th>何をしてくれるか</th><th>使う場面</th></tr>
+        <tr><td><span class="ui">戦略・計画の前提を洗い直す</span></td>
+            <td>過去の確定計画に、直近の社内外データと過去の議論を重ね、今期の計画で考慮すべき点と<b>計画書の素案枠</b>を出す</td>
+            <td>新しい計画を書き始める前</td></tr>
+        <tr><td><span class="ui">戦略・計画を点検する</span></td>
+            <td>作成中の計画・草案を、<b>論理点検／リスク・論点／過去の指摘</b>の3観点で一度に点検</td>
+            <td>確定・付議の前</td></tr>
+        <tr><td><span class="ui">グループ横断で計画を束ねる</span></td>
+            <td>6事業の計画とHHHD全体計画を突き合わせ、前提の食い違い・資源配分・事業構成の変化を確認</td>
+            <td>グループ経営層が横串で見るとき</td></tr>
+        <tr><td><span class="ui">戦略・計画と実態の乖離を捉える</span></td>
+            <td>確定した計画と実績・外部環境の差、個別案件の進捗差分、修正の要否を整理</td>
+            <td>四半期・月次の定例レビュー</td></tr>
+      </tbody>
+    </table>
+
+    <h3>3-1. 戦略・計画の前提を洗い直す</h3>
+    <ol class="steps">
+      <li>ホームの <span class="ui">計画支援を開く</span> → <span class="ui">前提を洗い直す</span> を押します。</li>
+      <li>画面上部に、登録済みの<b>過去の計画書が新しい順に並びます</b>（完成版のみ。ドラフトは載りません）。
+        行を押すと、その場で中身を読めます。いちばん新しい1件が点検の基準になります。</li>
+      <li><span class="ui">対象事業</span> を選びます。<b>HHHD全体</b>を選ぶと全社横断の観点で実行します（複数選択可）。</li>
+      <li>実行ボタンを押します。結果は3つのタブに出ます。</li>
+    </ol>
+    <table>
+      <tbody>
+        <tr><th>タブ</th><th>出るもの</th></tr>
+        <tr><td><span class="ui">前提・情勢の変化</span></td>
+            <td>前期計画の前提（為替・金利・需要・単価など）と直近の実勢の突合表と、判定（維持／要変更／新規追加）</td></tr>
+        <tr><td><span class="ui">考慮すべきポイント</span></td>
+            <td>外部環境・内部KPI・過去の経営会議の論点の3系統から、重要度と反映先つきで洗い出した一覧</td></tr>
+        <tr><td><span class="ui">計画書の素案枠</span></td>
+            <td>そのまま目次に使える章立てと、章ごとに書くべき内容・反映すべきデータ</td></tr>
+      </tbody>
+    </table>
+
+    <h3>3-2. 戦略・計画を点検する</h3>
+    <ol class="steps">
+      <li>ホームの <span class="ui">計画支援を開く</span> → <span class="ui">計画を点検する</span> を押します。</li>
+      <li>点検する計画・草案をアップロードします（<b>任意</b>。指定しない場合は登録済みの確定計画を点検します）。
+        動作確認だけしたいときは <span class="ui">サンプル資料</span> を選べます。</li>
+      <li><span class="ui">対象事業</span> を選びます（単独・比較・HHHD全体は選択内容から自動判定されます）。</li>
+      <li>実行ボタンを押します。結果は3つのタブ（<span class="ui">論理点検</span>／<span class="ui">リスク・論点</span>／<span class="ui">過去の指摘</span>）に出ます。</li>
+    </ol>
+    <table>
+      <tbody>
+        <tr><th>タブ</th><th>見るところ</th></tr>
+        <tr><td><span class="ui">論理点検</span></td><td>結論・数値根拠・施策・KPIのつながりと、前回論点への対応</td></tr>
+        <tr><td><span class="ui">リスク・論点</span></td><td>投資家・市場目線で想定される批判と問い、影響の規模感</td></tr>
+        <tr><td><span class="ui">過去の指摘</span></td><td>過去の経営会議の論点・宿題に、今回の計画が答えているか</td></tr>
+      </tbody>
+    </table>
+
+    <h3>3-3. グループ横断で計画を束ねる</h3>
+    <ol class="steps">
+      <li>ホームの <span class="ui">計画支援を開く</span> → <span class="ui">計画を束ねる</span> を押します。</li>
+      <li><b>6事業の計画書とHHHD全体計画をアップロードします（必須）</b>。サンプル資料でも試せます。</li>
+      <li>実行ボタンを押すと、前提の食い違い・資源配分・事業構成の時系列変化が出ます。</li>
+    </ol>
+    <div class="note">
+      <b>資料がないと実行できません</b>
+      整合性の点検は突き合わせる資料がそろって初めて成立するため、この画面だけは資料の指定が必須です。
+      結果には、資料を事業別に棚卸しした結果と<b>不足している事業</b>も示されます。
+    </div>
+
+    <h3>3-4. 戦略・計画と実態の乖離を捉える</h3>
+    <ol class="steps">
+      <li>ホームの <span class="ui">乖離を点検する</span> を押します。</li>
+      <li><span class="ui">点検する計画</span> を確定版から選びます（別の資料を指定することもできます）。</li>
+      <li><span class="ui">対象事業</span> を選び、実行ボタンを押します。</li>
+      <li>実績と外部環境が計画の想定からどれだけ離れたか、個別案件の進捗差分、修正の要否が出ます。</li>
+    </ol>
+
+    <h3>4画面に共通する使い方</h3>
+    <ul>
+      <li><b>HHHD全体を選ぶと、個別事業とは別の観点で動きます</b>（共通前提・二重計上・連結消去・総量制約・グループKPIの接続）。個別事業と同時に選んだ場合は全体視点を優先します。</li>
+      <li>結果の下の <span class="ui">この結果についてAIに聞く</span> から、その結果を持ったまま経営AI相談へ移れます（第4章）。</li>
+      <li>重要度「高」の指摘から順に並びます。総括だけを読み、そこに挙がった2〜3件を会議のアジェンダにすると議論が絞れます。</li>
+    </ul>
+
+    <div class="warn">
+      <b>数値は必ず原本で確認してください</b>
+      AIが読み取った数値には誤りが混じることがあります。会議資料や対外説明に使う数値は、必ず計画書の原本と出典元データで裏を取ってください。
+    </div>
+
+    <!-- 第4章 -->
+    <h2 id="s4"><span class="num">4</span>世の中の動向・変化を知る／経営AI相談</h2>
+    <p class="lead">外部環境の変化を掴み、打ち手と備えを用意する画面と、社内資料・公開データを根拠にAIへ相談する画面です。</p>
+
+    <h3>入口は2つ</h3>
+    <table>
+      <tbody>
+        <tr><th>入口</th><th>開くもの</th><th>使う場面</th></tr>
+        <tr><td>ホーム <span class="ui">動向を見る</span></td>
+            <td><span class="ui">重要指標を見る</span>（第2章のセンシング）／<span class="ui">打ち手・シナリオを整理する</span></td>
+            <td>変化の予兆を掴む、事象への打ち手を練る</td></tr>
+        <tr><td>ホーム最下段 <span class="ui">経営AI相談を開く</span></td>
+            <td>3つのモードを切り替えられる対話画面</td>
+            <td>資料の要約、論点整理、文案の壁打ち</td></tr>
+      </tbody>
+    </table>
+
+    <h3>経営AI相談の3つのモード</h3>
+    <table>
+      <tbody>
+        <tr><th>モード</th><th>何をしてくれるか</th><th>使う場面</th></tr>
+        <tr><td><span class="ui">自由質問</span></td>
+            <td>社内資料と公開データを確認し、根拠に基づいて回答。十分な根拠がない場合は、不明点と追加で確認すべき情報を明示</td>
+            <td>「○○をどう考えるべきか」を相談したいとき</td></tr>
+        <tr><td><span class="ui">業績要因分析</span></td>
+            <td>天候・為替などの外部データと自社実績を突き合わせ、何がどれだけ効いたかを検証</td>
+            <td>実績の増減理由を確かめたいとき</td></tr>
+        <tr><td><span class="ui">打ち手・シナリオ分析</span></td>
+            <td>対象の事象が<b>すでに起きたか、まだ起きていないか</b>をAIが冒頭で判定し、
+              発生済みなら影響経路と打ち手案を意思決定メモまで、未発生なら基準・上振れ・下振れの前提と影響を整理</td>
+            <td>重大事象が起きたとき／「もし○○になったら」を検討したいとき</td></tr>
+      </tbody>
+    </table>
+    <div class="note">
+      <b>「打ち手」と「シナリオ」は1つになりました</b>
+      以前あった <span class="ui">発生事象の影響と打ち手を導出する</span> と <span class="ui">起こり得る事象に備える</span> は、
+      画面もプロンプトも共通だったため <span class="ui">打ち手・シナリオ分析</span> に統合しました。過去の会話履歴はそのまま残ります。
+    </div>
+
+    <h3>操作の手順</h3>
+    <ol class="steps">
+      <li>ホーム最下段の <span class="ui">経営AI相談を開く</span>、または動向の <span class="ui">打ち手・シナリオを整理する</span> を押します。</li>
+      <li>必要に応じて根拠の範囲を切り替えます（下表）。</li>
+      <li>資料を読ませたい場合は、入力欄の左の <span class="ui">＋</span> から添付します（PDF・Word・Excel・CSV・テキスト・Markdown）。</li>
+      <li>質問を入力して送信します。<b>プロンプト例</b>のボタンを押すと、出力形式まで指定した文例が入力欄に入るので、（記入）部分を書き換えて送信できます。</li>
+    </ol>
+
+    <h4>根拠の範囲（トグル）</h4>
+    <table>
+      <tbody>
+        <tr><th>トグル</th><th>既定</th><th>働き</th></tr>
+        <tr><td><span class="ui">📁 社内資料検索</span></td><td>オン</td>
+            <td>社内資料・IR資料・有価証券報告書・外部事例・センシング指標を根拠に使う（<b>閲覧権限のある資料だけ</b>が対象です）</td></tr>
+        <tr><td><span class="ui">🌐 ウェブ検索</span></td><td>オフ</td>
+            <td>インターネットを検索し、上位ページの本文まで読んで回答に使う</td></tr>
+      </tbody>
+    </table>
+    <div class="warn">
+      <b>ウェブ検索をオンにすると、質問文が外部の検索サービスへ送信されます</b>
+      未公表情報や社外に出せない固有名詞を含む質問では、オンにしないでください。社内資料の内容が検索サービスへ送られることはありません。
+    </div>
+
+    <h3>回答を待っているあいだ</h3>
+    <p>資料を読んで回答を組み立てるため、<b>30秒前後かかります。</b>そのあいだ、いま何をしているかが順に表示されます。止まっているわけではありません。</p>
+    <table>
+      <tbody>
+        <tr><th>表示</th><th>何をしているか</th></tr>
+        <tr><td>質問の意図を読み取っています</td><td>質問を検索しやすい言葉に整理しています</td></tr>
+        <tr><td>社内資料・開示資料から根拠を検索しています</td><td>該当しそうな資料を探しています</td></tr>
+        <tr><td>該当ページの前後を読み込んでいます</td><td>見つかったページの前後も読み、文脈を補っています</td></tr>
+        <tr><td>ウェブを検索し、ページ本文を取得しています</td><td>ウェブ検索をONにしたときだけ表示されます</td></tr>
+        <tr><td>根拠を突き合わせて回答を作成しています</td><td>最後の工程です。ここが最も時間を要します</td></tr>
+      </tbody>
+    </table>
+
+    <h3>回答の見方</h3>
+    <p>回答の下にある <span class="ui">根拠を見る</span> を開くと、AIが参照した資料が一覧で出ます。<b>資料名をクリックすると原本が開きます。</b>重要な数値は必ずここから原本を確認してください。</p>
+    <p>回答の下には <span class="ui">役に立った</span>／<span class="ui">改善が必要</span>／<span class="ui">回答をコピー</span> が並びます。評価は <span class="ui">管理者設定</span> ＞ <span class="ui">AI回答履歴</span> に記録され、改善の材料になります。</p>
+    <div class="note">
+      <b>良い質問の書き方</b>
+      「円安の影響は？」より「円安が旅行事業の収益に与える影響を、社内資料の根拠を挙げて整理してください」のように、<b>対象事業</b>と<b>ほしい形式</b>を書くと精度が上がります。期間を絞りたい場合は「過去5年の」のように明示してください。
+    </div>
+
+    <h3>会話履歴について</h3>
+    <p>左側に会話履歴が並び、クリックで切り替えられます。<span class="ui">＋ 新しいチャット</span> で新規に始められます。</p>
+    <div class="warn">
+      <b>会話履歴は保存されません</b>
+      ログアウト、ブラウザを閉じる、長時間放置のいずれかで削除されます。他の利用者から見えることはありませんが、<b>翌日に続きを見ることもできません</b>。残したい内容はコピーして手元に保存してください。
+    </div>
+
+    <!-- 第5章 -->
+    <h2 id="s5"><span class="num">5</span>株主総会Q&amp;A</h2>
+    <p class="lead">第188期の都市交通BU想定問答<b>202件</b>を正本として、重複・不整合を点検し、各BUコア担当と事務局の二段階で承認します。事務局確認済みの回答だけが、問答集出力と当日検索に使われます。</p>
+
+    <table><tbody>
+      <tr><th>画面</th><th>主な利用者</th><th>目的</th></tr>
+      <tr><td><span class="ui">想定質問の洗い出し</span></td><td>各部門・BUコア担当</td><td>問答データの取込（回答案は空欄でも可）と、範囲・件数を選んだAIの洗い出し。同じ画面のタブで想定質問一覧も確認する</td></tr>
+      <tr><td><span class="ui">回答案作成</span></td><td>各部門・BUコア担当</td><td>回答が無い質問へAIで回答案を作り、編集して部門回答として登録する</td></tr>
+      <tr><td><span class="ui">点検・回答統合</span></td><td>BUコア担当・事務局</td><td>指摘のある問答だけを処理し、二段階で承認する</td></tr>
+      <tr><td><span class="ui">問答集・承認管理</span></td><td>事務局・経営層</td><td>問答集出力、指摘の区分別一覧、承認状態、経営層評価を一画面で扱う</td></tr>
+      <tr><td><span class="ui">壁打ち</span></td><td>議長・登壇者・事務局</td><td>株主総会全体を対象に、関連する確認済み問答を自動で集めて追質問を練習する</td></tr>
+      <tr><td><span class="ui">当日回答検索</span></td><td>事務局・BUコア担当</td><td>AIを使わない類似度索引で、事務局確認済み回答を最大5件表示する</td></tr>
+    </tbody></table>
+
+    <h3>1. 想定質問の洗い出し</h3>
+    <p>この画面で、今回の総会で問われる質問を出し切ります。上段が取り込み、下段は <b>［AIで想定質問を洗い出す］</b> と <b>［想定質問一覧］</b> のタブです。</p>
+    <h4>取り込み</h4>
+    <ol class="steps">
+      <li>1行目の <span class="ui">標準FMTテンプレート</span> をダウンロードして記入します。必須列は<b>質問</b>だけで、<b>回答案は空欄でもかまいません</b>。空欄の質問は「回答案未作成」として取り込み、<span class="ui">回答案作成</span> の対象になります。</li>
+      <li>2行目にファイルを置き、3行目の <span class="ui">チェックして取込</span> を押します。列、回答欠損、重複の確認から取込までを一度に行います。エラーがある場合は取込まず、内容だけを表示します。</li>
+    </ol>
+    <h4>AIで想定質問を洗い出す（タブ）</h4>
+    <ol class="steps">
+      <li><span class="ui">洗い出す範囲</span>（HHHD全体、または6事業のいずれか）と <span class="ui">1回で洗い出す数</span>（10〜60問）を選び、<span class="ui">不足している質問をAIで洗い出す</span> を押します。観点を変えた8問ずつのバッチを同時に走らせるため、40問でも待ち時間はほぼ1回分です。</li>
+      <li>候補は他の画面と同じ形の一覧表（選択｜想定質問（候補）｜対象｜論点｜可能性｜採用）で表示され、質問文は全文で読めます。行のどこを押してもチェックが入ります。</li>
+      <li>採用したい行に<b>チェックを入れて</b> <span class="ui">チェックした質問を採用</span> を押します。1件だけなら行末の <span class="ui">採用</span> で完了します。今回扱わない候補は <span class="ui">チェックした質問を除外</span> で外します。</li>
+      <li><span class="ui">すべて選択</span>／<span class="ui">選択解除</span> と、上部の「◯問を選択中」で選択状態を確認できます。</li>
+    </ol>
+    <div class="note"><b>AIの候補は提案です</b>採用するまで想定質問一覧には入りません。除外した論点は、次回の洗い出しでは再提示しません。範囲を「都市交通」にすると、その事業の現場・顧客・設備に即した質問だけを作り、採用した質問にはその所属が付きます。</div>
+    <h4>想定質問一覧（タブ）</h4>
+    <ul>
+      <li>取り込んだ質問とAIが採用された質問が1つの表に並びます。列は <b>番号｜想定質問｜出どころ｜所属｜回答｜BUコア確認済｜事務局確認済</b> で、番号は取込がQ001形式、AI採用がA001形式です。同じ質問はどの画面でも同じ番号で表示されます。承認は✓で示します。行を押すと、質問全文と回答全文がポップアップで開きます。</li>
+      <li><span class="ui">質問を検索</span> で質問文・対象・所属を絞り込みます。</li>
+      <li>絞り込みは2つに分かれています。<span class="ui">質問の出どころ</span> は「アップロード／AI生成」、<span class="ui">回答の状態</span> は「回答あり／AI作成回答／アップロード回答／回答なし／対象外」です。一覧の回答欄は「あり（◯案）／なし」だけを示し、<b>AIが作った回答と担当部門が用意した回答の区別は、詳細ポップアップの各回答カードのタグで確認</b>します。</li>
+      <li>不要な質問は、詳細画面の <span class="ui">この質問を削除する</span> で削除できます。<b>確認ダイアログで承諾すると、登録済みの回答・指摘・承認記録・当日検索の索引もまとめて消え、元に戻せません。</b>重複統合で対象外になった質問は、絞り込み「対象外」から <span class="ui">対象に戻す</span> で戻せます。</li>
+    </ul>
+
+    <h3>2. 回答案作成</h3>
+    <p>回答が1件も無い質問（アップロードで質問だけを取り込んだもの、AIが洗い出して採用したもの）だけが、想定質問一覧と同じ形の表に並びます。列は <b>番号｜想定質問｜出どころ｜所属｜AI回答案｜確認事項</b> で、AI回答案の作成状況と、登録前に確認すべき指摘の件数が一目で分かります。回答案を登録すると <span class="ui">点検・回答統合</span> へ進みます。</p>
+    <ol class="steps">
+      <li><span class="ui">回答なしの質問へAI回答案をまとめて作成</span> で、最大10問ずつ回答案を作ります。</li>
+      <li>1問ずつ扱うときは表の行を押します。編集ポップアップが開き、根拠資料、30秒版、登録前に確認すべき点（未公表情報・不足資料など）が出ます。<span class="ui">この質問の回答案をAIで作成</span> で1問だけAIに作らせることも、回答案を直接編集することもできます。</li>
+      <li><span class="ui">所属</span> と <span class="ui">情報区分</span> を選び、<span class="ui">回答案を登録</span> を押します。登録すると部門回答になり、ポップアップが閉じて表から消え、点検・回答統合の対象になります。</li>
+      <li>内容を1件ずつ確認せずに確定させる場合は、上部の <span class="ui">すべての回答案を登録</span> で作成済みのAI回答案をまとめて登録できます（所属は取込時の値、情報区分は「公開済み・回答使用可」になります）。</li>
+    </ol>
+    <div class="warn"><b>AI回答案はそのままでは正式回答になりません</b>登録するまで部門回答として扱われず、登録後も各BUコア担当と事務局の二段階承認が必要です。AIへ接続できないときは回答案を作成せず、その旨を表示します。</div>
+
+    <h3>3. 点検・回答統合</h3>
+    <p>回答案が無い質問は点検できないため、画面上部に「回答案未作成が◯問あります」と表示し、<span class="ui">回答案作成へ</span> のボタンを置いています。</p>
+    <p><span class="ui">全質問を並列点検</span> は、二段構えで202問をまとめて確認します。一段目は形式チェックで、回答の長さ、根拠資料名の有無、情報区分、部門間の数値の食い違い、質問文の類似（重複候補）を機械的に検出します。二段目はAIによる読解で、質問に直接答えているか、理由や前提が通っているか、当日そのまま話せるかを確認します。AIの指摘は、種類が一覧と完全に一致するものだけを採り、登録済みの回答と食い違う指摘（公開回答があるのに「公開根拠不足」など）は保存しません。重複候補はAIではなく質問文の類似計算だけで決めます。重大度はAIの申告ではなく種類ごとの基準で決まり、一覧の絞り込み、集計、承認の判断にそのまま反映されます。指摘の本文には「AI点検：」が付きます。</p><p>AIへ接続できない場合も点検は完了し、形式チェックだけの結果を表示します。そのときは点検後のメッセージにその旨を表示します。</p><p>一覧は想定質問一覧と同じ形の表で、列は <b>番号｜想定質問｜所属｜指摘｜BUコア確認済｜事務局確認済</b> です。「指摘」は未解決の指摘の<b>種類だけ</b>を修正必須＝赤・修正推奨＝琥珀のラベルで2列に並べ、同じ種類は「重複質問（3件）」のように件数でまとめます（本文は行を押した先のポップアップで読みます）。<span class="ui">指摘の区分</span>（すべて／修正必須／修正推奨／指摘あり／指摘なし）、<span class="ui">指摘の種類</span>、質問文の3つで絞り込みます。区分の初期値は「指摘あり」で、未解決の指摘がある質問だけを表示します。同じ区分は <span class="ui">問答集・承認管理</span> にもあり、どちらの画面でも同じ意味で働きます。行を押すと、指摘の全文、部門回答の比較、統合回答案の編集、承認をまとめたポップアップが開きます。</p>
+    <table><tbody>
+      <tr><th>タグ</th><th>判断</th><th>処理</th></tr>
+      <tr><td>重複候補</td><td>同じ経営論点か</td><td><span class="ui">代表質問へ統合</span> または <span class="ui">別質問として残す</span></td></tr>
+      <tr><td>不整合</td><td>数値・期間・主張・理由が両立するか</td><td>正本を確認して統合回答案を修正</td></tr>
+      <tr><td>回答不足</td><td>質問へ直接答えているか</td><td>結論、理由、必要な定量情報を補う</td></tr>
+      <tr><td>開示確認</td><td>公開回答に使える情報だけか</td><td>未公表情報を除き、必要なら法務確認</td></tr>
+      <tr><td>根拠確認</td><td>資料名と対象時点を追えるか</td><td>根拠を確認して回答へ反映</td></tr>
+    </tbody></table>
+    <ol class="steps">
+      <li>表の行を押してポップアップを開き、BU内の統合回答を確認して <span class="ui">各BUコア担当として承認</span> を押します。</li>
+      <li>事務局がBU承認版を確認し、<span class="ui">事務局として承認</span> を押します。承認するとポップアップが閉じ、表の確認済み欄に✓が付きます。</li>
+      <li>事務局承認時に、回答は当日検索索引へ自動登録されます。</li>
+    </ol>
+    <div class="warn"><b>順番を飛ばせません</b>事務局承認は、各BUコア担当の承認後だけ実行できます。「改善が必要」で戻すと古い承認版は無効になり、当日検索から外れます（問答集には「改善が必要」として載ります）。</div>
+
+    <h3>4. 問答集・承認管理</h3>
+    <p>指摘一覧、承認状態、経営層評価、問答集出力を一画面にまとめています。総務確認の工程はありません。</p>
+    <p>画面最上部の <span class="ui">Word問答集を出力</span> は、承認状況に関係なくいつでも押せます。出力した問答集には、質問ごとに「未確認」「BUコア確認済み」「事務局確認済み」「改善が必要」のいずれかを記載します。<b>回答案未作成の質問は収録せず</b>、冒頭の「利用上の注意」にその件数を記載します。</p>
+    <p>一覧は想定質問一覧と同じ形の表で、列は <b>番号｜想定質問｜所属｜指摘｜BUコア確認済｜事務局確認済｜経営層評価</b> です。<span class="ui">指摘の区分</span>、<span class="ui">確認状況</span>（未確認／BUコア確認済み／事務局確認済み。表のチェック2列と対応）、<span class="ui">経営層評価</span>（改善が必要／良い／未評価）で絞り込みます。区分は「すべて」「修正必須」「修正推奨」「指摘あり」「指摘なし」から選びます。修正必須・修正推奨は「そのまま当日に使えるか」だけで決まり、指摘の種類ごとに固定です。行を押すと、問答の詳細と経営層評価のポップアップが開きます。</p>
+    <table><tbody>
+      <tr><th>指摘の区分</th><th>対象</th></tr>
+      <tr><td>修正必須</td><td>そのまま当日に使うと誤答・開示事故になる指摘が残る質問</td></tr>
+      <tr><td>修正推奨</td><td>回答は成立するが説明の質が落ちる指摘だけが残る質問</td></tr>
+      <tr><td>指摘あり</td><td>修正必須と修正推奨の合計</td></tr>
+      <tr><td>指摘なし</td><td>未解決の指摘がない質問</td></tr>
+    </tbody></table>
+    <p><span class="ui">指摘なしをまとめてBUコア承認</span> は、区分で「指摘なし」を選んだときだけ表示されます。指摘のない質問のうち未承認のものを一括で承認します。</p>
+    <p>経営層は <span class="ui">評価</span> で「良い」または「改善が必要」を選びます。「改善が必要」の場合は評価区分、理由、改善の依頼先（BUコア担当／事務局）を入力して <span class="ui">評価を登録</span> を押します。</p>
+    <div class="warn"><b>「改善が必要」は承認を取り消します</b>依頼先が「事務局」なら事務局承認、「BUコア担当」ならBUコア承認と事務局承認が解除され、当日検索登録も外れます。一覧では「改善が必要：依頼先」と表示され、依頼先が承認し直すと元に戻ります。問答集には引き続き「改善が必要」として収録されます。</div>
+
+    <h3>5. 壁打ち</h3>
+    <p>対象は<b>株主総会全体</b>です。事前の検索・選択は不要で、話す予定の回答や論点を入力して <span class="ui">送信</span> を押すと、発言に関係する確認済み問答を最大5件まで自動で集めます。確認できるのは、論点の網羅性、問答間の矛盾、回答者の切り分け、全社方針との整合、開示の抜けです。</p>
+    <p>関連問答は、RAG検索と同じ意味検索（埋め込みモデル）で集めます。強く関連する問答に加え、少しでも関係のある問答は<b>「参考」</b>の印つきで候補に入ります（参考は直接の根拠には使いません）。参考候補すら見つからないときだけ「関連問答なし」と表示され、推測での回答は作りません。AIの返答に並ぶ関連問答の行を押すと、確認済み回答の全文を別窓で開けます（×・画面外クリック・Escで閉じます）。</p>
+    <p>回答直下のGood／Badで評価します。Badでは理由も入力できます。</p>
+
+    <h3>6. 当日回答検索</h3>
+    <p>株主の発言を入力し、<span class="ui">承認回答を検索</span> を押します。検索はAI・Web検索を使わず、事務局確認済みの索引だけを対象に最大5件を返します。承認されていない回答、再確認中の回答、非開示情報は表示されません。</p>
+
+    <div class="warn"><b>問答集は社外秘です</b>出力ファイルと画面上の回答は、社内の定めた保管先・配布先だけで取り扱ってください。</div>
+
+    <h2 id="s6"><span class="num">6</span>管理者設定</h2>
+    <p class="lead">左メニュー下部の <span class="ui">管理者設定</span> を開くと表示されます（項目は権限によって変わります）。設定変更というより、<b>アプリが何を見ているか・どう使われているか</b>を確認する画面群です。</p>
+
+    <table>
+      <tbody>
+        <tr><th>メニュー</th><th>見られるもの</th><th>使う場面</th></tr>
+        <tr><td><span class="ui">ユーザー・権限管理</span></td>
+            <td>アカウントの追加・変更・削除、パスワードの設定、閲覧できるデータ群と事業体KPIの付与<br>
+              <b>システム管理者のみ</b></td>
+            <td>人事異動・新規利用者の登録、権限の見直し</td></tr>
+        <tr><td><span class="ui">事例ナレッジ基盤</span></td>
+            <td>他社事例・業界動向など外部事例の検索・閲覧と、内部資料の登録・削除（登録・削除はシステム管理者のみ）</td>
+            <td>類似事例を探したいとき、資料を追加したいとき</td></tr>
+        <tr><td><span class="ui">アプリの構造</span></td>
+            <td>画面と機能のつながり</td>
+            <td>全体像を説明したいとき</td></tr>
+        <tr><td><span class="ui">格納データ一覧</span></td>
+            <td>このアプリが参照できるデータの棚卸し</td>
+            <td><b>何を質問できるか</b>を確認したいとき</td></tr>
+        <tr><td><span class="ui">AI回答履歴</span></td>
+            <td>計画支援・経営AI相談・株主総会Q&amp;Aの回答と評価（自分の履歴。システム管理者は全件）</td>
+            <td>利用状況の確認、回答内容の振り返り</td></tr>
+        <tr><td><span class="ui">フィードバック</span></td>
+            <td>改善提案・気づいた点の共有ボード</td>
+            <td>気づいた点を残したいとき</td></tr>
+      </tbody>
+    </table>
+
+    <h3>AI回答履歴の見方</h3>
+    <p>画面上部に集計が<b>2行</b>並びます。</p>
+    <table>
+      <tbody>
+        <tr><th>行</th><th>内容</th></tr>
+        <tr><td><span class="ui">機能別</span></td>
+            <td>先頭の <b>全機能</b> が合計。その右に、計画支援・経営AI相談・株主総会Q&amp;Aなど機能ごとの回数とToken数</td></tr>
+        <tr><td><span class="ui">ユーザー別</span></td>
+            <td>利用者ごとの回数とToken数。<b>利用量の多い順</b>に並びます</td></tr>
+      </tbody>
+    </table>
+    <p>その下は明細で、新しい順に並びます。行を開くと、機能名・ユーザー・対象・Token数・日時・評価と、質問と回答の全文が確認できます。</p>
+
+    <div class="note">
+      <b>Token数は利用量の目安です</b>
+      AIが処理した文字量に対応する単位で、コストの目安になります。資料を多く読ませた質問ほど大きくなります。
+    </div>
+  </div>
+
+  <footer>
+    AI経営診断・株主総会アプリ 利用者マニュアル（業務担当者向け）<br>
+    対象範囲：経営診断（ホーム・センシング・計画支援・乖離検証・動向／経営AI相談）／株主総会Q&amp;A／管理者設定<br>
+    最終更新：2026年8月25日（「利用にあたっての注意」を役員向け版に差し替え、操作マニュアルを現行画面に合わせて更新）
+  </footer>
+
+</div>
+
+<script>
+  (function () {
+    var buttons = document.querySelectorAll(".tabs button");
+    var panels = {
+      notice: document.getElementById("panel-notice"),
+      manual: document.getElementById("panel-manual")
+    };
+    function show(name) {
+      buttons.forEach(function (b) {
+        var on = b.dataset.tab === name;
+        b.classList.toggle("active", on);
+        b.setAttribute("aria-selected", on ? "true" : "false");
+      });
+      for (var k in panels) panels[k].classList.toggle("active", k === name);
+    }
+    buttons.forEach(function (b) {
+      b.addEventListener("click", function () { show(b.dataset.tab); });
+    });
+    function syncToHash() {
+      var id = location.hash.slice(1);
+      if (!id) return;
+      var el = document.getElementById(id);
+      if (!el) return;
+      show(panels.manual.contains(el) ? "manual" : "notice");
+      el.scrollIntoView();
+    }
+    window.addEventListener("hashchange", syncToHash);
+    syncToHash();
+  })();
+</script>
+</body>
+</html>
