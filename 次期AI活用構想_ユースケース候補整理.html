@@ -1,0 +1,597 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>次期AI活用構想｜ユースケース候補の全体像</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700&family=Inter:wght@500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #1e2226;
+    --ink-soft: #43494f;
+    --muted: #7a8087;
+    --paper: #ffffff;
+    --mist: #f6f7f5;
+    --line: #e3e6e1;
+    --green: #86bc25;
+    --green-deep: #5f8c11;
+    --green-tint: #f3f8e8;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { -webkit-font-smoothing: antialiased; }
+  body {
+    background: #eceeeb;
+    font-family: 'Noto Sans JP', sans-serif;
+    color: var(--ink);
+    line-height: 1.65;
+    font-size: 13px;
+  }
+  .page {
+    max-width: 1240px;
+    margin: 0 auto;
+    padding: 36px 28px 64px;
+  }
+  .sheet {
+    background: var(--paper);
+    border: 1px solid var(--line);
+  }
+
+  /* ---------- Header ---------- */
+  .masthead {
+    padding: 40px 48px 32px;
+    border-bottom: 1px solid var(--line);
+  }
+  .eyebrow {
+    font-family: 'Inter', 'Noto Sans JP', sans-serif;
+    font-size: 10.5px;
+    font-weight: 600;
+    letter-spacing: 0.18em;
+    color: var(--green-deep);
+    text-transform: uppercase;
+    margin-bottom: 12px;
+  }
+  h1 {
+    font-size: 26px;
+    font-weight: 700;
+    letter-spacing: 0.01em;
+    line-height: 1.4;
+  }
+  .thesis {
+    margin-top: 10px;
+    font-size: 14px;
+    color: var(--ink-soft);
+  }
+  .thesis b { font-weight: 600; color: var(--ink); }
+  .criteria {
+    margin-top: 22px;
+    display: flex;
+    gap: 0;
+    border: 1px solid var(--line);
+  }
+  .criteria .cell {
+    flex: 1;
+    padding: 12px 18px;
+    border-left: 1px solid var(--line);
+  }
+  .criteria .cell:first-child { border-left: none; }
+  .criteria .k {
+    font-size: 10.5px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    color: var(--muted);
+    margin-bottom: 2px;
+  }
+  .criteria .v { font-size: 12px; color: var(--ink-soft); }
+
+  /* ---------- UC section ---------- */
+  .uc {
+    display: grid;
+    grid-template-columns: 216px 1fr;
+    border-bottom: 1px solid var(--line);
+  }
+  .uc:last-of-type { border-bottom: none; }
+
+  /* left rail */
+  .rail {
+    padding: 36px 26px;
+    border-right: 1px solid var(--line);
+    background: var(--mist);
+    display: flex;
+    flex-direction: column;
+  }
+  .uc-id {
+    font-family: 'Inter', sans-serif;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.16em;
+    color: var(--green-deep);
+  }
+  .uc-name {
+    margin-top: 6px;
+    font-size: 17.5px;
+    font-weight: 700;
+    line-height: 1.45;
+  }
+  .uc-tag {
+    margin-top: 8px;
+    font-size: 12px;
+    color: var(--muted);
+    line-height: 1.6;
+  }
+  .rec {
+    margin-top: auto;
+    padding-top: 24px;
+  }
+  .rec .k {
+    font-size: 10.5px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    color: var(--muted);
+    margin-bottom: 6px;
+  }
+  .dots { display: flex; gap: 5px; margin-bottom: 6px; }
+  .dot {
+    width: 9px; height: 9px;
+    border-radius: 50%;
+    background: var(--green);
+  }
+  .dot.off { background: #d4d8d1; }
+  .rec .label {
+    font-size: 12.5px;
+    font-weight: 600;
+    color: var(--ink);
+  }
+  .rec .note {
+    font-size: 11px;
+    color: var(--muted);
+    line-height: 1.55;
+    margin-top: 2px;
+  }
+
+  /* right body */
+  .body { padding: 36px 42px 38px; }
+
+  /* before / after */
+  .ba {
+    display: grid;
+    grid-template-columns: 1fr 34px 1fr;
+    align-items: stretch;
+  }
+  .panel { padding: 18px 22px 20px; }
+  .panel .ph {
+    font-family: 'Inter', 'Noto Sans JP', sans-serif;
+    font-size: 10.5px;
+    font-weight: 600;
+    letter-spacing: 0.18em;
+    margin-bottom: 8px;
+  }
+  .panel p { font-size: 12.5px; }
+  .before {
+    background: var(--mist);
+    border: 1px solid var(--line);
+  }
+  .before .ph { color: var(--muted); }
+  .before p { color: var(--ink-soft); }
+  .after {
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-left: 3px solid var(--green);
+  }
+  .after .ph { color: var(--green-deep); }
+  .arrow {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #b9bfb6;
+    font-size: 15px;
+  }
+
+  /* AI intervention strip */
+  .ai-strip {
+    margin-top: 10px;
+    background: var(--green-tint);
+    border: 1px solid #dcead2;
+    padding: 12px 22px;
+    display: flex;
+    gap: 20px;
+    align-items: baseline;
+  }
+  .ai-strip .k {
+    flex: 0 0 auto;
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--green-deep);
+    letter-spacing: 0.06em;
+    white-space: nowrap;
+  }
+  .ai-strip ul {
+    list-style: none;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px 26px;
+  }
+  .ai-strip li {
+    font-size: 12px;
+    color: var(--ink-soft);
+    position: relative;
+    padding-left: 14px;
+  }
+  .ai-strip li::before {
+    content: "";
+    position: absolute;
+    left: 0; top: 8px;
+    width: 6px; height: 6px;
+    background: var(--green);
+  }
+  .ai-strip .human {
+    font-size: 11px;
+    color: var(--muted);
+    flex: 0 0 auto;
+    margin-left: auto;
+    white-space: nowrap;
+  }
+
+  /* three columns */
+  .facts {
+    margin-top: 26px;
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 36px;
+  }
+  .fact .fh {
+    font-size: 11.5px;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    padding-bottom: 7px;
+    margin-bottom: 9px;
+    border-bottom: 2px solid var(--ink);
+  }
+  .fact.ko .fh { border-bottom-color: #c9ced2; color: var(--ink-soft); }
+  .fact p { font-size: 12px; color: var(--ink-soft); }
+  .fact p + p { margin-top: 7px; }
+  .fact b { font-weight: 600; color: var(--ink); }
+  .ko-answer {
+    margin-top: 8px;
+    padding-top: 8px;
+    border-top: 1px dashed var(--line);
+    font-size: 12px;
+    color: var(--ink);
+  }
+  .ko-answer::before {
+    content: "対処";
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--green-deep);
+    letter-spacing: 0.08em;
+    display: inline-block;
+    margin-right: 8px;
+  }
+
+  /* ---------- Footer band ---------- */
+  .foundation {
+    padding: 30px 48px 34px;
+    background: var(--ink);
+    color: #eceeea;
+  }
+  .foundation .eyebrow { color: var(--green); margin-bottom: 8px; }
+  .foundation .fx {
+    display: grid;
+    grid-template-columns: 1.15fr 1fr;
+    gap: 48px;
+    align-items: start;
+  }
+  .foundation h2 {
+    font-size: 16px;
+    font-weight: 700;
+    line-height: 1.5;
+  }
+  .foundation p {
+    margin-top: 8px;
+    font-size: 12px;
+    color: #b9beba;
+  }
+  .foundation .chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 4px;
+  }
+  .foundation .chip {
+    border: 1px solid #4a5054;
+    padding: 5px 12px;
+    font-size: 11.5px;
+    color: #d6dad4;
+  }
+  .colophon {
+    padding: 14px 48px;
+    display: flex;
+    justify-content: space-between;
+    font-size: 10.5px;
+    color: var(--muted);
+    border-top: 1px solid var(--line);
+    background: var(--paper);
+  }
+
+  @media (max-width: 900px) {
+    .uc { grid-template-columns: 1fr; }
+    .rail { border-right: none; border-bottom: 1px solid var(--line); }
+    .rec { margin-top: 18px; }
+    .ba { grid-template-columns: 1fr; }
+    .arrow { transform: rotate(90deg); padding: 6px 0; }
+    .facts { grid-template-columns: 1fr; gap: 22px; }
+    .ai-strip { flex-direction: column; gap: 6px; }
+    .ai-strip .human { margin-left: 0; }
+  }
+  @media print {
+    body { background: #fff; }
+    .page { padding: 0; max-width: none; }
+    .sheet { border: none; }
+    .uc { page-break-inside: avoid; }
+  }
+</style>
+</head>
+<body>
+<div class="page">
+  <div class="sheet">
+
+    <!-- ============ HEADER ============ -->
+    <header class="masthead">
+      <div class="eyebrow">Next Phase — AI Use Case Portfolio</div>
+      <h1>次期AI活用構想｜ユースケース候補の全体像</h1>
+      <p class="thesis">AI経営診断PoCで検証した「計画を診る」力を、<b>「判断を記憶し、組織として忘れない」力</b>へ拡張する。ホールディングスの判断力を、個人の経験と記憶から、蓄積し続ける組織の資産に変える4つのユースケース。</p>
+      <div class="criteria">
+        <div class="cell">
+          <div class="k">選定条件 01</div>
+          <div class="v">汎用AIでは代替できず、自社開発する必然性があること</div>
+        </div>
+        <div class="cell">
+          <div class="k">選定条件 02</div>
+          <div class="v">構築に必要なデータが実在すること</div>
+        </div>
+        <div class="cell">
+          <div class="k">選定条件 03</div>
+          <div class="v">現行技術で実務利用水準に到達すること</div>
+        </div>
+      </div>
+    </header>
+
+    <!-- ============ UC-A ============ -->
+    <section class="uc">
+      <div class="rail">
+        <div class="uc-id">UC-A</div>
+        <div class="uc-name">判断の記憶装置</div>
+        <div class="uc-tag">投資判断ナレッジ × 前提監視<br>目指す姿：「組織が忘れない」</div>
+        <div class="rec">
+          <div class="k">推奨度</div>
+          <div class="dots"><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>
+          <div class="label">主砲</div>
+          <div class="note">フェーズ0（文書アセスメント）の結果を踏まえ本格着手</div>
+        </div>
+      </div>
+      <div class="body">
+        <div class="ba">
+          <div class="panel before">
+            <div class="ph">BEFORE</div>
+            <p>投資判断の論点の網羅性は、起案者の経験と上長の記憶に依存し、抜け漏れは委員会当日の差し戻しとして表面化する。承認時に置いた事業前提は、承認された瞬間から誰の所管でもなくなり、担当交代とともに散逸。前提が崩れても、撤退基準の議論は「誰かが言い出す」まで始まらない。</p>
+          </div>
+          <div class="arrow">▶</div>
+          <div class="panel after">
+            <div class="ph">AFTER</div>
+            <p>起案時に案件が過去の類型と照合され、投資委員会で問われてきた論点との差分が上程前に提示される。承認案件の前提は監視指標として登録され、外部実データと常時突合。乖離が閾値を超えた案件だけが、経営企画に自動で起票される——担当者が何度交代しても、投資時の約束を組織が覚えている。</p>
+          </div>
+        </div>
+        <div class="ai-strip">
+          <span class="k">AIの介在点</span>
+          <ul>
+            <li>稟議・議事録からの論点・前提の構造化抽出</li>
+            <li>新規案件と過去類型の照合</li>
+            <li>前提と監視可能な外部指標の対応付け</li>
+          </ul>
+          <span class="human">判断は一貫して人が担う</span>
+        </div>
+        <div class="facts">
+          <div class="fact">
+            <div class="fh">ビジネス価値</div>
+            <p>差し戻し削減による意思決定の速度向上と、前提崩れの早期検知による<b>減損リスクの低減</b>。</p>
+            <p>資本規律の一貫性を裏付ける仕組みとして、ROIC経営・投資家との対話にも直結する。</p>
+          </div>
+          <div class="fact">
+            <div class="fh">実装のイメージ</div>
+            <p>直近5〜10年の大型案件を対象に、LLMで稟議・議事録を構造化し、<b>論点ライブラリと前提レジストリ</b>を構築。新規案件はRAGで類型判定し、前提監視は常時センシング機構に接続する。</p>
+            <p>将来は監視対象を契約コミットメント（COC条項・解約制約等）へ拡張。</p>
+          </div>
+          <div class="fact ko">
+            <div class="fh">ノックアウト要素</div>
+            <p>前提が稟議本文ではなく添付の収支計画に数値として埋没している場合、抽出対象が文書上に存在しない。稟議・議事録へのアクセスには経営企画・総務の関与が前提。</p>
+            <div class="ko-answer">フェーズ0で実文書のサンプル検証を行い、スコープを確定してから約束する。</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ UC-B ============ -->
+    <section class="uc">
+      <div class="rail">
+        <div class="uc-id">UC-B</div>
+        <div class="uc-name">M&amp;A初期検討<br>インテリジェンス</div>
+        <div class="uc-tag">棄却判断の高速化<br>目指す姿：「月曜朝に断れる」</div>
+        <div class="rec">
+          <div class="k">推奨度</div>
+          <div class="dots"><span class="dot"></span><span class="dot"></span><span class="dot off"></span></div>
+          <div class="label">中期本命</div>
+          <div class="note">記録を残す仕組みから着手し、2年目に本領</div>
+        </div>
+      </div>
+      <div class="body">
+        <div class="ba">
+          <div class="panel before">
+            <div class="ph">BEFORE</div>
+            <p>持ち込み案件ごとに初期検討へ数週間の工数を投下し、その大半は見送りに帰着する。見送りの理由は担当者の記憶と個人のメールに残るのみで、類似の案件が形を変えて再度持ち込まれても、検討は毎回ゼロから始まる。</p>
+          </div>
+          <div class="arrow">▶</div>
+          <div class="panel after">
+            <div class="ph">AFTER</div>
+            <p>打診の翌営業日に、公開情報の初期整理に加え、過去の検討経緯・見送り理由・その理由が今も有効かの検証を添えた初期メモが揃う。「見ない」判断が数週間から数日に短縮され、検討リソースを本命案件に集中できる。</p>
+          </div>
+        </div>
+        <div class="ai-strip">
+          <span class="k">AIの介在点</span>
+          <ul>
+            <li>過去の検討記録・見送り理由の想起</li>
+            <li>公開情報デスクトップ調査の自動実行</li>
+          </ul>
+          <span class="human">投資可否の判断は人が担う</span>
+        </div>
+        <div class="facts">
+          <div class="fact">
+            <div class="fh">ビジネス価値</div>
+            <p>検討工数の大半を占める「結局やらない案件」の棄却を高速化し、<b>検討スループット</b>を引き上げる。</p>
+            <p>長期経営構想が掲げる6年7,500億円の成長投資の実行力を、成約件数ではなく検討の質と速度の面から支える。</p>
+          </div>
+          <div class="fact">
+            <div class="fh">実装のイメージ</div>
+            <p>検討メモの標準フォーマット化と自動保存の仕組みを先行して整備し、<b>記憶の蓄積と並行して</b>公開情報調査の自動化を実装する。</p>
+            <p>ナレッジが本格的に効き始めるのは2年目以降と明示したロードマップで進める。</p>
+          </div>
+          <div class="fact ko">
+            <div class="fh">ノックアウト要素</div>
+            <p>見送り案件の検討記録は正式文書化される前に散逸している可能性が高く、初年度は想起すべき「記憶」がほぼ空。その場合、価値が公開情報整理のみとなり汎用AIとの差が消える。</p>
+            <div class="ko-answer">初年度を記録整備期間と正直に定義し、期待値を設計段階で合わせる。</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ UC-C ============ -->
+    <section class="uc">
+      <div class="rail">
+        <div class="uc-id">UC-C</div>
+        <div class="uc-name">グループ健康診断</div>
+        <div class="uc-tag">約100社の複合シグナル検知<br>目指す姿：「減損の1年前に、対話が始まる」</div>
+        <div class="rec">
+          <div class="k">推奨度</div>
+          <div class="dots"><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>
+          <div class="label">早期着手</div>
+          <div class="note">財務＋月次報告書の簡易版から開始し、段階拡張</div>
+        </div>
+      </div>
+      <div class="body">
+        <div class="ba">
+          <div class="panel before">
+            <div class="ph">BEFORE</div>
+            <p>HDがグループ約100社を見る解像度は、月次の財務数値と四半期レビュー。単体指標が予算内に収まっていれば「正常」と映り、原価率・人材流出・在庫といった複合的な悪化の兆候は、減損や事案として顕在化するまで捕捉されない。</p>
+          </div>
+          <div class="arrow">▶</div>
+          <div class="panel after">
+            <div class="ph">AFTER</div>
+            <p>財務数値と月次報告書の定性情報を組み合わせたスクリーニングが毎月実行され、「単体では正常、組み合わせでは要注意」の会社が理由の説明付きで浮上する。四半期レビューを待たずに対話が始まり、1年後の減損が今月の会話に変わる。</p>
+          </div>
+        </div>
+        <div class="ai-strip">
+          <span class="k">AIの介在点</span>
+          <ul>
+            <li>複数指標の交差パターンの検知</li>
+            <li>月次報告書等の定性文書の読解</li>
+            <li>「なぜ要注意か」の説明生成</li>
+          </ul>
+          <span class="human">異常検知の主軸はルール＋統計手法</span>
+        </div>
+        <div class="facts">
+          <div class="fact">
+            <div class="fh">ビジネス価値</div>
+            <p>業績悪化・ガバナンス事案の早期発見による<b>損失の未然回避</b>。</p>
+            <p>子会社に対しては「小規模な会社でも経営企画機能を持てる」支援として提供し、監視強化ではなく経営支援の文脈で展開する。</p>
+          </div>
+          <div class="fact">
+            <div class="fh">実装のイメージ</div>
+            <p>初期スコープは<b>連結財務データ＋月次報告書のLLM読解</b>に限定し、追加のデータ接続なしで開始。</p>
+            <p>異常検知はルール＋統計を主とし、LLMは読解と説明生成に限定する役割分担で実務精度を担保。非財務データの接続拡張は基盤フェーズに委ねる。</p>
+          </div>
+          <div class="fact ko">
+            <div class="fh">ノックアウト要素</div>
+            <p>約100社の非財務データを月次で収集する基盤は現存しない前提に立つべきで、フル構想を初期スコープにすると立ち上げ自体が数年仕事になる。</p>
+            <div class="ko-answer">初期スコープの限定で回避済み。報告書フォーマットの不統一は読解側の設計で吸収する。</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ UC-G ============ -->
+    <section class="uc">
+      <div class="rail">
+        <div class="uc-id">UC-G</div>
+        <div class="uc-name">行政・制度<br>インテリジェンス</div>
+        <div class="uc-tag">沿線自治体の公開文書の常時読解<br>目指す姿：「制度の変化を最初に知る」</div>
+        <div class="rec">
+          <div class="k">推奨度</div>
+          <div class="dots"><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>
+          <div class="label">即時着手</div>
+          <div class="note">公開データのみで成立、フェーズ0不要の先行枠</div>
+        </div>
+      </div>
+      <div class="body">
+        <div class="ba">
+          <div class="panel before">
+            <div class="ph">BEFORE</div>
+            <p>大型投資の前提の多くは行政判断の上に成立しているが、その把握は報道と個別の人脈による伝聞に依存している。沿線自治体の議会議事録・審議会資料・予算案に散在する兆候は、物量的に誰も読み切れていない。</p>
+          </div>
+          <div class="arrow">▶</div>
+          <div class="panel after">
+            <div class="ph">AFTER</div>
+            <p>沿線自治体の公開文書が常時読解され、「どの答弁・予算措置が、自社のどの案件・KPIに効き得るか」へ翻訳されて届く。答弁の温度、予算の付き方、審議体制の変化といった、報道になる前の弱いシグナルが投資検討のインプットになる。</p>
+          </div>
+        </div>
+        <div class="ai-strip">
+          <span class="k">AIの介在点</span>
+          <ul>
+            <li>人間には読み切れない物量の公開文書の継続読解</li>
+            <li>事業構造マップによる自社影響への翻訳</li>
+          </ul>
+          <span class="human">兆候の解釈と行動は人が担う</span>
+        </div>
+        <div class="facts">
+          <div class="fact">
+            <div class="fh">ビジネス価値</div>
+            <p>制度・行政という<b>最大の外部変数</b>に対する感度の組織化。</p>
+            <p>個人の人脈に依存しない、再現性のある先読み能力をグループとして獲得する。</p>
+          </div>
+          <div class="fact">
+            <div class="fh">実装のイメージ</div>
+            <p>公開データのクローリング＋LLM読解＋事業構造マップとの突合。<b>PoCの常時センシング機構をそのまま制度領域へ展開</b>でき、事業体間のデータ利用調整が一切不要。</p>
+            <p>内部文書への依存がなく、最速で価値を示せる先行ユースケース。</p>
+          </div>
+          <div class="fact ko">
+            <div class="fh">ノックアウト要素</div>
+            <p>致命的な障害はなし。議事録の公開には数週間〜数ヶ月のタイムラグがあり、速報性では報道に劣後する。単発の調査であれば汎用AIでも可能な領域。</p>
+            <div class="ko-answer">価値を「速報」ではなく「網羅性と弱いシグナルの継続蓄積×自社影響への翻訳」に定義し差別化する。</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ FOUNDATION ============ -->
+    <footer class="foundation">
+      <div class="eyebrow">Common Foundation</div>
+      <div class="fx">
+        <div>
+          <h2>4つのユースケースは、同じ基盤の上に立つ</h2>
+          <p>文書構造化・ナレッジ基盤・常時センシング・アクセス統制を共有基盤として整備することで、個別UCの開発が将来の10本・20本のユースケースを支えるAI活用基盤への投資として積み上がる。</p>
+        </div>
+        <div class="chips">
+          <span class="chip">文書構造化パイプライン</span>
+          <span class="chip">事例ナレッジ基盤</span>
+          <span class="chip">常時センシング</span>
+          <span class="chip">事業構造マップ</span>
+          <span class="chip">アクセス統制</span>
+        </div>
+      </div>
+    </footer>
+    <div class="colophon">
+      <span>次期AI活用構想 — ユースケース候補整理（社内検討用ドラフト）</span>
+      <span>UC-A / B / C / G</span>
+    </div>
+
+  </div>
+</div>
+</body>
+</html>
