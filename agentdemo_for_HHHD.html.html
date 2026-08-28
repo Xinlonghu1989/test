@@ -1,0 +1,946 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Agent 実行モニター</title>
+<style>
+/* ══ 色は3つだけに意味を持たせる ══════════════
+   青 = 進行中 / 赤 = 事件（軌道修正・権限の壁）/ 緑 = 達成
+   ── 大画面での投影を前提に、全体を約1.7倍のスケールで組む ── */
+:root{
+  --bg:#07090e; --bg2:#0b0e15; --panel:#0f131c; --hd:#0c1017;
+  --line:#1c2231; --line2:#2a3245;
+  --tx:#e6ebf5; --tx2:#96a1b6; --tx3:#5d6880;
+  --go:#5b93ff; --hit:#ff5d68; --ok:#35c98a;
+  --mono:"SF Mono",ui-monospace,Menlo,Consolas,monospace;
+  /* ── 文字スケール（ここを触れば全体が連動する）── */
+  --f-narr:22px; --f-chat:20px; --f-think:18.5px; --f-mile:19.5px;
+  --f-plan:18px; --f-tool:15px; --f-evid:16px; --f-hd:14px;
+  --col-chat:480px; --col-rail:400px;
+}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0}
+body{background:var(--bg);color:var(--tx);overflow:hidden;font-size:18px;line-height:1.65;
+  font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Noto Sans JP","Yu Gothic UI",sans-serif}
+::-webkit-scrollbar{width:11px;height:11px}
+::-webkit-scrollbar-thumb{background:#252e42;border-radius:11px;border:3px solid transparent;background-clip:content-box}
+::-webkit-scrollbar-track{background:transparent}
+.app{height:100vh;display:flex;flex-direction:column}
+
+/* ── ヘッダ ─────────────────────────── */
+.top{display:flex;align-items:center;gap:18px;padding:0 22px;height:56px;flex:none;
+  background:#0a0d14;border-bottom:1px solid var(--line)}
+.brand{display:flex;align-items:center;gap:10px;font-weight:700;font-size:17px;white-space:nowrap}
+.brand .dot{width:10px;height:10px;border-radius:50%;background:var(--ok);box-shadow:0 0 11px var(--ok)}
+.brand small{font-weight:400;color:var(--tx3);font-size:14px}
+.tabs{display:flex;gap:8px;margin-left:auto}
+.tab{padding:7px 17px;border-radius:8px;border:1px solid var(--line);background:#0d111a;
+  color:var(--tx3);cursor:pointer;font-size:15.5px;font-family:inherit;transition:.15s;white-space:nowrap}
+.tab:hover{color:var(--tx2)}
+.tab.on{background:#16264a;border-color:#3a5da8;color:#cfe0ff}
+
+/* ── 実況ライン（背景色なし・静か）───── */
+.stage{flex:none;display:flex;align-items:center;gap:24px;padding:12px 22px;
+  background:#0a0d14;border-bottom:1px solid var(--line2)}
+.narr{display:flex;align-items:center;gap:15px;flex:1;min-width:0}
+.narr .ic{font-size:20px;width:25px;text-align:center;color:var(--tx3);flex:none;transition:color .3s}
+.narr .tx{font-size:var(--f-narr);color:var(--tx2);line-height:1.35;transition:color .3s;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:500}
+.narr.hit .ic,.narr.hit .tx{color:#ff8f97}
+.narr.wait .ic,.narr.wait .tx{color:#9fc0ff}
+.narr.good .ic,.narr.good .tx{color:#7fdcb4}
+.phdots{display:flex;align-items:center;gap:7px;flex:none}
+.phdots i{width:7px;height:7px;border-radius:50%;background:#222a3c;transition:.3s;font-style:normal}
+.phdots i.on{background:var(--go);transform:scale(1.5)}
+.phdots b{font-family:var(--mono);font-size:13px;color:var(--tx3);font-weight:500;
+  letter-spacing:.09em;margin-left:9px;min-width:82px}
+.mets{display:flex;gap:24px;align-items:center;padding-left:24px;flex:none;border-left:1px solid var(--line)}
+.met{text-align:right;line-height:1.2;opacity:.72}
+.met b{display:block;font-family:var(--mono);font-size:19px;color:var(--tx2);font-weight:600}
+.met span{font-size:11.5px;color:var(--tx3)}
+.met.fix{opacity:1} .met.fix b{color:var(--hit)}
+
+/* ── 3カラム：チャット｜思考｜右レール ── */
+.main{flex:1;min-height:0;display:grid;gap:1px;background:var(--line);
+  grid-template-columns:var(--col-chat) 1fr var(--col-rail)}
+
+/* ── チャット ───────────────────────── */
+.chat{background:var(--bg2);display:flex;flex-direction:column;min-height:0;
+  box-shadow:inset 4px 0 0 -1px rgba(91,147,255,.3)}
+.chat-hd{padding:14px 20px;border-bottom:1px solid var(--line);flex:none;display:flex;align-items:center;gap:13px}
+.avatar{width:34px;height:34px;border-radius:10px;flex:none;background:linear-gradient(135deg,#4f86f7,#7b6ef0);
+  display:grid;place-items:center;font-size:14px;font-weight:700;color:#fff}
+.chat-hd b{font-size:16.5px}
+.chat-hd em{font-style:normal;color:var(--tx3);font-size:14px;display:block;line-height:1.35}
+.chat-body{flex:1;overflow-y:auto;padding:20px 18px;display:flex;flex-direction:column;gap:18px;min-height:0}
+.msg{display:flex;gap:12px;animation:fadeUp .35s ease}
+.msg .ic{width:28px;height:28px;border-radius:9px;flex:none;display:grid;place-items:center;
+  font-size:12px;font-weight:700;margin-top:3px}
+.msg.user{flex-direction:row-reverse}
+.msg.user .ic{background:#232c40;color:#93a3bf}
+.msg.agent .ic{background:linear-gradient(135deg,#4f86f7,#7b6ef0);color:#fff}
+.bub{max-width:calc(100% - 42px);padding:13px 17px;border-radius:14px;font-size:var(--f-chat);
+  line-height:1.78;white-space:pre-wrap;word-break:break-word}
+.msg.user .bub{background:#1e3a68;border:1px solid #2d5088;border-bottom-right-radius:5px}
+.msg.agent .bub{background:#141a26;border:1px solid var(--line2);border-bottom-left-radius:5px}
+.bub b{color:#fff}
+.bub .hl{color:#ffd479}
+.bub hr{border:0;border-top:1px solid #2a3245;margin:13px 0}
+.typing{display:flex;gap:6px;padding:18px 20px}
+.typing i{width:9px;height:9px;border-radius:50%;background:var(--tx3);animation:bl 1.2s infinite}
+.typing i:nth-child(2){animation-delay:.18s}.typing i:nth-child(3){animation-delay:.36s}
+@keyframes bl{0%,60%,100%{opacity:.25;transform:translateY(0)}30%{opacity:1;transform:translateY(-4px)}}
+.compose{border-top:1px solid var(--line);padding:16px 18px;flex:none;background:#080b11}
+.cwrap{display:flex;gap:11px;align-items:flex-end}
+.cbox{flex:1;background:#111725;border:1px solid var(--line2);border-radius:11px;padding:12px 15px;
+  font-size:18px;color:var(--tx);min-height:48px;max-height:200px;overflow-y:auto;white-space:pre-wrap;line-height:1.7}
+.cbox.empty{color:var(--tx3)}
+.cbox.armed{border-color:#4b7ad4;box-shadow:0 0 0 4px rgba(91,147,255,.13)}
+.send{width:48px;height:48px;flex:none;border-radius:11px;border:0;cursor:pointer;background:#2b58a8;
+  color:#fff;font-size:19px;display:grid;place-items:center;transition:.15s}
+.send:hover:not(:disabled){background:#356ad0}
+.send:disabled{background:#161d2a;color:#414c62;cursor:default}
+.await-tag{font-size:14.5px;color:#9fc0ff;margin-bottom:10px;display:flex;align-items:center;gap:9px}
+.await-tag .pulse{width:9px;height:9px;border-radius:50%;background:var(--go);animation:pg 1.4s infinite}
+@keyframes pg{0%,100%{opacity:1;box-shadow:0 0 0 0 rgba(91,147,255,.45)}50%{opacity:.45;box-shadow:0 0 0 10px rgba(91,147,255,0)}}
+
+/* ── パネル共通 ─────────────────────── */
+.rail{display:flex;flex-direction:column;gap:1px;background:var(--line);min-height:0}
+.rail .panel:nth-child(1){flex:1.15 1 0}
+.rail .panel:nth-child(2){flex:1 1 0}
+.panel{background:var(--panel);display:flex;flex-direction:column;min-height:0;overflow:hidden;
+  transition:opacity .5s,filter .5s}
+.panel.t1{box-shadow:inset 0 3px 0 0 rgba(91,147,255,.35)}
+.panel.t2{opacity:.96}
+.panel.t3{opacity:.5;filter:saturate(.2)}
+.panel.hot{opacity:1;filter:none}
+.p-hd{flex:none;padding:10px 15px;border-bottom:1px solid var(--line);display:flex;align-items:center;
+  gap:11px;background:var(--hd)}
+.p-hd h3{margin:0;font-size:var(--f-hd);letter-spacing:.05em;color:var(--tx2);font-weight:600}
+.p-hd .sub{font-size:12px;color:#3c465c}
+.p-hd .cnt{margin-left:auto;font-family:var(--mono);font-size:13px;color:var(--tx3);
+  background:#141a27;border:1px solid var(--line);padding:2px 11px;border-radius:20px}
+.p-bd{flex:1;overflow-y:auto;padding:13px;min-height:0;display:flex;flex-direction:column;gap:9px}
+.p-bd[hidden]{display:none}
+.empty-note{color:#333c4e;font-size:15px;text-align:center;padding:28px 10px;line-height:1.7}
+.p-bd.dim > *:not(:last-child){opacity:.38}
+.p-bd.dim > .th.correct,.p-bd.dim > .mile,.p-bd.dim > .gd.block{opacity:1}
+
+/* ── タスクプラン ───────────────────── */
+.tk{display:flex;gap:12px;padding:11px 13px;border-radius:10px;border:1px solid transparent;
+  background:#141a26;font-size:var(--f-plan);animation:fadeUp .3s ease;transition:.25s;align-items:flex-start}
+.tk.sub{margin-left:22px;background:#111621;font-size:calc(var(--f-plan) - 2px)}
+.tk .bx{width:19px;height:19px;border-radius:5px;border:2px solid #303950;flex:none;margin-top:3px;
+  display:grid;place-items:center;font-size:12px;color:#0a0d14;font-weight:700;transition:.2s}
+.tk .lb{flex:1;color:var(--tx2);line-height:1.5}
+.tk.run{border-color:#3a5da8;background:#16223c}
+.tk.run .bx{border-color:var(--go)}
+.tk.run .bx::after{content:"";width:10px;height:10px;border-radius:50%;background:var(--go);animation:pg 1.2s infinite}
+.tk.run .lb{color:#dbe8ff;font-weight:600}
+.tk.done .bx{background:var(--ok);border-color:var(--ok)}
+.tk.done .bx::after{content:"✓"}
+.tk.done .lb{color:#4d566c;text-decoration:line-through;text-decoration-color:#2f3852}
+.tk.warnst .bx{background:var(--hit);border-color:var(--hit)}
+.tk.warnst .bx::after{content:"!"}
+.tk.warnst .lb{color:#f0b3b8}
+.tk.newly{animation:pop .7s ease}
+.tk .tag{font-size:12px;font-family:var(--mono);padding:2px 8px;border-radius:6px;margin-top:3px;
+  background:rgba(255,93,104,.13);color:#ff9098;border:1px solid rgba(255,93,104,.3);white-space:nowrap}
+
+/* ── 思考ストリーム ─────────────────── */
+.th{border-left:3px solid #2a3245;padding:10px 15px;background:#131924;border-radius:0 10px 10px 0;
+  animation:fadeUp .35s ease;font-size:var(--f-think);cursor:pointer;transition:opacity .5s}
+.th .k{font-size:13px;font-family:var(--mono);letter-spacing:.08em;color:var(--tx3);display:block;margin-bottom:5px}
+.th p{margin:0;color:var(--tx2);line-height:1.72}
+.p-bd.dim .th:not(:last-child):not(.open):not(.correct) p{
+  display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.th.decide{border-left-color:#3c4d75} .th.decide .k{color:#7e93bd}
+.th.correct{border-left:4px solid var(--hit);border-top:1px solid rgba(255,93,104,.28);
+  border-right:1px solid rgba(255,93,104,.28);border-bottom:1px solid rgba(255,93,104,.28);
+  background:linear-gradient(90deg,rgba(255,93,104,.13),#131924 72%)}
+.th.correct .k{color:var(--hit);font-weight:700}
+.th.correct p{color:#ffd0d3}
+
+/* ── 達成マイルストーン ─────────────── */
+.mile{display:flex;gap:14px;align-items:flex-start;padding:14px 16px;border-radius:11px;
+  border:1px solid rgba(53,201,138,.32);background:rgba(53,201,138,.085);
+  animation:mpop .6s ease;transition:opacity .5s}
+.mile .mi{color:var(--ok);font-size:19px;flex:none;line-height:1.25}
+.mile b{display:block;font-size:13px;font-family:var(--mono);color:var(--ok);
+  letter-spacing:.1em;margin-bottom:4px;font-weight:700}
+.mile p{margin:0;font-size:var(--f-mile);color:#c9e9da;line-height:1.62;font-weight:600}
+@keyframes mpop{0%{opacity:0;transform:translateY(8px)}60%{box-shadow:0 0 0 10px rgba(53,201,138,.11)}
+  100%{opacity:1;transform:none;box-shadow:0 0 0 0 rgba(53,201,138,0)}}
+
+/* ── 証拠パネル（3タブを1枠に集約）──── */
+.evtabs{gap:0;padding:0 8px}
+.evtab{flex:1;min-width:0;border:0;background:transparent;color:var(--tx3);cursor:pointer;font-family:inherit;
+  font-size:13px;padding:11px 2px;border-bottom:2px solid transparent;transition:.2s;white-space:nowrap;
+  display:flex;align-items:center;justify-content:center;gap:7px}
+.evtab:hover{color:var(--tx2)}
+.evtab.on{color:#bcd4ff;border-bottom-color:var(--go)}
+.evtab i{font-style:normal;font-family:var(--mono);font-size:12px;color:var(--tx3);flex:none;
+  background:#141a27;border:1px solid var(--line);padding:1px 7px;border-radius:20px}
+.evtab.on i{color:#9fc0ff;border-color:#2c3d63}
+
+/* ── ツールログ ─────────────────────── */
+.tl{background:#131924;border:1px solid var(--line);border-radius:9px;padding:9px 13px;
+  font-family:var(--mono);font-size:var(--f-tool);animation:fadeUp .3s ease;transition:opacity .5s}
+.tl .l1{display:flex;align-items:center;gap:10px}
+.tl .nm{color:#95b4e8;font-weight:600}
+.tl .more{color:#3c465c;cursor:pointer;padding:0 4px}
+.tl .more:hover{color:var(--tx2)}
+.tl .ag{display:none;color:var(--tx3);font-size:13px;margin-top:6px;word-break:break-all}
+.tl.open .ag{display:block}
+.tl .st{margin-left:auto;font-size:13px;white-space:nowrap;color:var(--tx3)}
+.tl .rs{margin-top:8px;padding-top:8px;border-top:1px dashed #222a3a;color:var(--tx2);font-size:var(--f-tool);
+  line-height:1.6;white-space:pre-wrap;font-family:inherit;
+  display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.tl.open .rs{-webkit-line-clamp:unset;display:block}
+.tl.running{border-color:#3a5da8} .tl.running .st{color:var(--go)}
+.tl.ok .st{color:#4c6a58}
+.tl.warn{border-color:rgba(255,93,104,.28)} .tl.warn .st{color:var(--hit)}
+.tl.err{border-color:rgba(255,93,104,.45);background:#1a1119} .tl.err .st{color:var(--hit)}
+.sp{width:11px;height:11px;border:2px solid #252d40;border-top-color:var(--go);border-radius:50%;
+  display:inline-block;animation:spin .65s linear infinite;flex:none}
+@keyframes spin{to{transform:rotate(360deg)}}
+.par{border:1px dashed #3a5da8;border-radius:10px;padding:11px;background:#0e1524;animation:fadeUp .3s ease}
+.par-hd{font-size:13px;font-family:var(--mono);color:var(--go);letter-spacing:.05em;margin-bottom:10px;
+  display:flex;align-items:center;gap:9px}
+.lanes{display:grid;grid-template-columns:1fr 1fr 1fr;gap:7px}
+.lane{background:#131924;border:1px solid var(--line);border-radius:8px;padding:8px;min-height:62px}
+.lane h5{margin:0 0 6px;font-size:12px;color:#95b4e8;font-family:var(--mono);font-weight:600;line-height:1.35}
+.lane .li{font-size:11.5px;font-family:var(--mono);color:var(--tx3);margin-bottom:5px;line-height:1.5;
+  animation:fadeUp .3s ease}
+.lane .li b{color:var(--tx2);font-weight:500}
+.lane .li.done{color:#4c6a58}
+
+/* ── 獲得コンテキスト ───────────────── */
+.ft{background:#131924;border:1px solid var(--line);border-left:3px solid #2a3245;border-radius:0 9px 9px 0;
+  padding:10px 14px;animation:fadeUp .3s ease;transition:opacity .5s}
+.ft h6{margin:0 0 4px;font-size:12px;color:var(--tx3);font-family:var(--mono);letter-spacing:.05em;font-weight:600}
+.ft p{margin:0;font-size:var(--f-evid);color:var(--tx2);line-height:1.62}
+.ft.key{border-left-color:var(--ok)} .ft.key h6{color:var(--ok)}
+.ft.rev{border-left-color:var(--hit)} .ft.rev h6{color:var(--hit)}
+.ft.rev p{text-decoration:line-through;color:var(--tx3);opacity:.7}
+
+/* ── ガードレール ───────────────────── */
+.gd{border-radius:9px;padding:10px 14px;font-size:var(--f-evid);display:flex;gap:11px;border:1px solid var(--line);
+  background:#131924;animation:fadeUp .3s ease;line-height:1.62;color:var(--tx2);transition:opacity .5s}
+.gd .gi{flex:none;font-size:16px;line-height:1.4}
+.gd.block{border-color:rgba(255,93,104,.4);background:rgba(255,93,104,.09);color:#ffc9cd}
+.gd.warn{border-color:rgba(255,93,104,.22);color:#e0b6ba}
+.gd.ok{border-color:rgba(53,201,138,.3);background:rgba(53,201,138,.07);color:#a8ebcd}
+
+@keyframes fadeUp{from{opacity:0;transform:translateY(7px)}to{opacity:1;transform:none}}
+@keyframes pop{0%{transform:scale(.96);background:#1e3a68}100%{transform:none}}
+
+/* ── 画面幅への追従 ─────────────────── */
+@media(min-width:1900px){
+  :root{--col-chat:560px; --col-rail:460px;
+    --f-narr:25px; --f-chat:21.5px; --f-think:20px; --f-mile:21px; --f-plan:19px;
+    --f-tool:16px; --f-evid:17px; --f-hd:15px}
+}
+@media(max-width:1400px){
+  :root{--col-chat:400px; --col-rail:335px;
+    --f-narr:19.5px; --f-chat:17.5px; --f-think:16.5px; --f-mile:17px; --f-plan:16px;
+    --f-tool:13px; --f-evid:14px; --f-hd:13px}
+  .mets{gap:16px} .met b{font-size:17px}
+}
+@media(max-width:1240px){
+  :root{--col-chat:340px; --col-rail:285px;
+    --f-narr:16.5px; --f-chat:15px; --f-think:14px; --f-mile:14.5px; --f-plan:13.5px}
+  .phdots{display:none}
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="top">
+    <div class="brand"><span class="dot"></span>Agent 実行モニター
+      <small>明和精機株式会社 / 社内業務エージェント</small></div>
+    <nav class="tabs" id="tabs"></nav>
+  </header>
+
+  <div class="stage">
+    <div class="narr" id="narr">
+      <span class="ic" id="narrIc">⏸</span>
+      <span class="tx" id="narrTx">待機中</span>
+    </div>
+    <div class="phdots" id="phdots"></div>
+    <div class="mets">
+      <div class="met"><b id="mTool">0</b><span>ツール実行</span></div>
+      <div class="met"><b id="mMile">0</b><span>達成</span></div>
+      <div class="met fix"><b id="mFix">0</b><span>軌道修正</span></div>
+      <div class="met"><b id="mHum">0</b><span>人間の介入</span></div>
+      <div class="met"><b id="mTime">00:00</b><span>経過</span></div>
+    </div>
+  </div>
+
+  <div class="main">
+    <!-- ① 会話 -->
+    <section class="chat">
+      <div class="chat-hd">
+        <div class="avatar">AI</div>
+        <div><b id="agName">業務アシスタント Agent</b><em id="agSub">待機中</em></div>
+      </div>
+      <div class="chat-body" id="chatBody"></div>
+      <div class="compose">
+        <div class="await-tag" id="awaitTag" style="display:none">
+          <span class="pulse"></span><span id="awaitTxt"></span>
+        </div>
+        <div class="cwrap">
+          <div class="cbox" id="cbox"></div>
+          <button class="send" id="bSend" title="送信">➤</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ② 思考（達成・軌道修正はここでハイライト） -->
+    <section class="panel t2" id="panThink">
+      <div class="p-hd"><h3>思考ストリーム</h3><span class="sub">クリックで全文</span>
+        <span class="cnt" id="cThink">0</span></div>
+      <div class="p-bd dim" id="pThink"><div class="empty-note">Agent の内部推論と達成ポイント</div></div>
+    </section>
+
+    <!-- ③ 右レール：タスクプラン ＋ 証拠 -->
+    <div class="rail">
+      <div class="panel t1" id="panPlan">
+        <div class="p-hd"><h3>タスクプラン</h3><span class="cnt" id="cPlan">0/0</span></div>
+        <div class="p-bd" id="pPlan"><div class="empty-note">依頼を送信すると<br>Agent がタスクを分解します</div></div>
+      </div>
+      <div class="panel t3" id="panEvid">
+        <div class="p-hd evtabs">
+          <button class="evtab on" data-p="pTool">ツール実行 <i id="cTool">0</i></button>
+          <button class="evtab" data-p="pFact">コンテキスト <i id="cFact">0</i></button>
+          <button class="evtab" data-p="pGuard">ガードレール <i id="cGuard">0</i></button>
+        </div>
+        <div class="p-bd dim" id="pTool"><div class="empty-note">外部システムへのアクセス履歴</div></div>
+        <div class="p-bd dim" id="pFact" hidden><div class="empty-note">確定した事実</div></div>
+        <div class="p-bd dim" id="pGuard" hidden><div class="empty-note">権限境界と安全制御</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+/* ══════════════════════════════════════════════════════════
+   実行エンジン
+     ①チャット ②思考ストリーム（達成＝緑 / 軌道修正＝赤）
+     ③右レール：タスクプラン ＋ 証拠（3タブを自動追従で切替）
+   操作はキーボードのみ： Space 再生/停止 ・ → 1ステップ ・ R 最初から ・ S 速度
+   ══════════════════════════════════════════════════════════ */
+
+const $  = id => document.getElementById(id);
+const el = (t,c,h)=>{const e=document.createElement(t); if(c)e.className=c; if(h!=null)e.innerHTML=h; return e;};
+const esc = s => String(s).replace(/[&<>]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[m]));
+const fmt = s => esc(s).replace(/\*\*(.+?)\*\*/g,'<b>$1</b>').replace(/__(.+?)__/g,'<span class="hl">$1</span>').replace(/---/g,'<hr>');
+
+const PHASES = ['PLAN','THINK','ACT','OBSERVE','REFLECT'];
+const PHASE_NARR = {
+  PLAN:['☰','何をすべきか組み立てています'], THINK:['◇','集めた材料を突き合わせて考えています'],
+  ACT:['▶','社内システムにアクセスしています'], OBSERVE:['◎','取得した結果を読んでいます'],
+  REFLECT:['✓','自分の判断が正しいか検証しています'], HUMAN:['⏸','あなたの確認を待っています'],
+  DONE:['✔','完了しました'],
+};
+const KIND = {observe:'観察',hypo:'仮説',decide:'判断',verify:'自己検証',
+  correct:'軌道修正',plan:'計画',recall:'記憶参照'};
+const ICON = {observe:'◎',hypo:'◇',decide:'▶',verify:'✓',correct:'⟲',plan:'☰',recall:'⌘'};
+const SPEEDS = [1, 1.6, 2.5, 0.6];
+const EVID = {pTool:1, pFact:1, pGuard:1};   // 証拠パネルの3タブ
+
+let S = null;
+
+function newState(scn){
+  return {scn, steps:scn.steps.slice(), idx:0, playing:false, awaiting:null, pending:null,
+    timer:null, speed:1, tasks:new Map(), lanes:null,
+    n:{tool:0,think:0,fact:0,guard:0,fix:0,mile:0,hum:0,ms:0}};
+}
+
+function narrate(icon,text,tone){
+  $('narrIc').textContent=icon; $('narrTx').textContent=text;
+  $('narr').className='narr'+(tone?' '+tone:'');
+}
+function setPhase(v){
+  $('phdots').innerHTML='';
+  PHASES.forEach(p=>$('phdots').appendChild(el('i', p===v?'on':'')));
+  $('phdots').appendChild(el('b',null, PHASES.includes(v)?v:'—'));
+}
+function spotlight(panelId){
+  const p=$(panelId); if(!p) return;
+  p.classList.add('hot'); clearTimeout(p._t);
+  p._t=setTimeout(()=>p.classList.remove('hot'), 2600/Math.max(1,S.speed*.6));
+}
+/* 証拠パネル：書き込みがあったタブへ自動で切り替える */
+function showEvid(paneId){
+  Object.keys(EVID).forEach(k=>{ $(k).hidden = (k!==paneId); });
+  document.querySelectorAll('.evtab').forEach(b=>b.classList.toggle('on', b.dataset.p===paneId));
+}
+function push(paneId,node,cntId,val){
+  const p=$(paneId);
+  if(EVID[paneId]){ showEvid(paneId); spotlight('panEvid'); }
+  const note=p.querySelector('.empty-note'); if(note) note.remove();
+  p.appendChild(node); p.scrollTop=p.scrollHeight;
+  if(cntId) $(cntId).textContent=val;
+  if(paneId==='pThink') spotlight('panThink');
+  return node;
+}
+function refreshMetrics(){
+  $('mTool').textContent=S.n.tool; $('mMile').textContent=S.n.mile;
+  $('mFix').textContent=S.n.fix;   $('mHum').textContent=S.n.hum;
+  const t=Math.round(S.n.ms/1000);
+  $('mTime').textContent=String(Math.floor(t/60)).padStart(2,'0')+':'+String(t%60).padStart(2,'0');
+}
+function planCount(){
+  let d=0,a=0; S.tasks.forEach(t=>{a++; if(['done','fail','skip'].includes(t.status))d++;});
+  $('cPlan').textContent=d+'/'+a;
+}
+
+/* ── ステップ実行 ─────────────────────── */
+function exec(s){
+  switch(s.type){
+
+  case 'phase': {
+    setPhase(s.v);
+    const [ic,tx]=PHASE_NARR[s.v]||['▶',''];
+    narrate(s.narrIc||ic, s.narr||tx, s.tone||(s.v==='HUMAN'?'wait':s.v==='DONE'?'good':''));
+    $('agSub').textContent=tx;
+    return 950;
+  }
+
+  case 'chat': {
+    const m=el('div','msg '+s.role);
+    m.appendChild(el('div','ic', s.role==='user'?'You':'AI'));
+    m.appendChild(el('div','bub', fmt(s.text)));
+    push('chatBody', m);
+    if(s.role==='agent') narrate('💬','あなたに報告しています','');
+    return s.d || Math.min(5800, 1300+s.text.length*21);
+  }
+
+  case 'typing': {
+    const m=el('div','msg agent'); m.id='typingNode';
+    m.appendChild(el('div','ic','AI'));
+    m.appendChild(el('div','bub typing','<i></i><i></i><i></i>'));
+    push('chatBody', m);
+    setTimeout(()=>{const n=$('typingNode'); if(n)n.remove();}, (s.d||1400)/S.speed);
+    return s.d||1400;
+  }
+
+  case 'plan': return planOp(s);
+
+  case 'think': {
+    const t=el('div','th '+s.kind);
+    t.appendChild(el('span','k',(ICON[s.kind]||'·')+' '+(KIND[s.kind]||'思考')));
+    t.appendChild(el('p',null,fmt(s.text)));
+    t.onclick=()=>t.classList.toggle('open');
+    push('pThink', t, 'cThink', ++S.n.think);
+    if(s.kind==='correct'){ S.n.fix++; narrate('⟲','軌道修正 — '+(s.head||'判断を組み直します'),'hit'); }
+    refreshMetrics();
+    return s.d || Math.min(6200, 1800+s.text.length*32);
+  }
+
+  case 'mile': {
+    const m=el('div','mile');
+    m.appendChild(el('span','mi','✓'));
+    const b=el('div');
+    b.appendChild(el('b',null,'達成'));
+    b.appendChild(el('p',null,fmt(s.text)));
+    m.appendChild(b);
+    push('pThink', m, 'cThink', ++S.n.think);
+    S.n.mile++; refreshMetrics();
+    narrate('✓', s.narr||s.text.replace(/\*\*/g,''), 'good');
+    return s.d || 3000;
+  }
+
+  case 'tool': {
+    const t=el('div','tl running');
+    const l1=el('div','l1');
+    l1.appendChild(el('span','sp'));
+    l1.appendChild(el('span','nm', esc(s.name)));
+    l1.appendChild(el('span','st','実行中'));
+    t.appendChild(l1);
+    if(s.args) t.appendChild(el('div','ag', esc(s.args)));
+    push('pTool', t, 'cTool', ++S.n.tool);
+    refreshMetrics();
+    S.pending=()=>{
+      t.className='tl '+(s.status||'ok');
+      const spn=l1.querySelector('.sp'); if(spn) spn.remove();
+      l1.querySelector('.st').textContent =
+        ({ok:'✓ ',warn:'⚠ ',err:'✕ '}[s.status||'ok'])+(s.ms||420)+'ms';
+      if(s.result) t.appendChild(el('div','rs', fmt(s.result)));
+      const mo=el('span','more','⋯'); mo.title='引数と全文';
+      mo.onclick=e=>{e.stopPropagation(); t.classList.toggle('open');};
+      l1.insertBefore(mo, l1.querySelector('.st'));
+      $('pTool').scrollTop=$('pTool').scrollHeight;
+    };
+    return s.ms||420;
+  }
+
+  case 'par-open': {
+    const c=el('div','par');
+    c.appendChild(el('div','par-hd','<span class="sp"></span> 並列実行 — サブエージェント '+s.lanes.length+' 体'));
+    const g=el('div','lanes');
+    S.lanes=s.lanes.map(nm=>{const L=el('div','lane'); L.appendChild(el('h5',null,esc(nm))); g.appendChild(L); return L;});
+    c.appendChild(g); push('pTool', c);
+    narrate('⇉','3つの分析を並列で走らせています','');
+    return 950;
+  }
+  case 'par-step': {
+    showEvid('pTool');
+    const L=S.lanes[s.lane];
+    const li=el('div','li','<span class="sp"></span> '+esc(s.name));
+    L.appendChild(li);
+    S.pending=()=>{ li.className='li done';
+      li.innerHTML='✓ <b>'+esc(s.name)+'</b><br>'+fmt(s.result);
+      S.n.tool++; refreshMetrics(); $('pTool').scrollTop=$('pTool').scrollHeight; };
+    return s.ms||420;
+  }
+  case 'par-close': { S.lanes=null; return 700; }
+
+  case 'fact': {
+    const f=el('div','ft '+(s.tone||''));
+    f.appendChild(el('h6',null,esc(s.title)));
+    f.appendChild(el('p',null,fmt(s.text)));
+    push('pFact', f, 'cFact', ++S.n.fact);
+    return s.d||1350;
+  }
+  case 'fact-revoke': {
+    showEvid('pFact'); spotlight('panEvid');
+    const ns=$('pFact').querySelectorAll('.ft');
+    const n=ns[s.i<0?ns.length+s.i:s.i];
+    if(n){ n.className='ft rev'; n.querySelector('h6').textContent='✗ '+n.querySelector('h6').textContent+'（棄却）'; }
+    return 950;
+  }
+
+  case 'guard': {
+    const ic={block:'🔒',warn:'⚠️',ok:'✅',info:'ℹ️'}[s.level]||'ℹ️';
+    const g=el('div','gd '+s.level);
+    g.appendChild(el('span','gi',ic));
+    g.appendChild(el('span',null,fmt(s.text)));
+    push('pGuard', g, 'cGuard', ++S.n.guard);
+    if(s.level==='block'&&s.head) narrate('🔒','権限の壁 — '+s.head,'hit');
+    return s.d||1900;
+  }
+
+  case 'await': {
+    S.awaiting=s; setPhase('HUMAN');
+    narrate('⏸', s.narr||'あなたの承認を待っています','wait');
+    $('awaitTag').style.display='flex';
+    $('awaitTxt').textContent=s.label||'Agent が確認を待っています';
+    setCompose(s.reply,true); pause();
+    requestAnimationFrame(()=>{ $('chatBody').scrollTop=$('chatBody').scrollHeight; });
+    return 0;
+  }
+  }
+  return 350;
+}
+
+/* ── タスクプラン ─────────────────────── */
+function planOp(s){
+  spotlight('panPlan');
+  if(s.op==='set'){ $('pPlan').innerHTML=''; s.items.forEach(it=>addTask(it)); planCount(); return 1500; }
+  if(s.op==='insert'){
+    const node=addTask(s.item,true); node.classList.add('newly');
+    const a=S.tasks.get(s.after); if(a) a.node.after(node);
+    planCount(); return s.d||1200;
+  }
+  if(s.op==='status'){
+    const t=S.tasks.get(s.id); if(!t) return 250;
+    t.status=s.v;
+    t.node.className='tk'+(t.sub?' sub':'')+' '+({running:'run',done:'done',warn:'warnst',fail:'fail',skip:'skip'}[s.v]||'');
+    if(s.tag){ let g=t.node.querySelector('.tag'); if(!g){g=el('span','tag'); t.node.appendChild(g);} g.textContent=s.tag; }
+    if(s.v==='running') t.node.scrollIntoView({block:'nearest',behavior:'smooth'});
+    planCount(); return s.d||450;
+  }
+  if(s.op==='label'){ const t=S.tasks.get(s.id); if(t) t.node.querySelector('.lb').innerHTML=fmt(s.label); return 700; }
+  return 250;
+}
+function addTask(it,noAppend){
+  const node=el('div','tk'+(it.sub?' sub':''));
+  node.appendChild(el('div','bx'));
+  node.appendChild(el('div','lb', fmt(it.label)));
+  S.tasks.set(it.id,{node,status:'',sub:!!it.sub});
+  if(!noAppend) $('pPlan').appendChild(node);
+  return node;
+}
+
+/* ── ループ制御 ───────────────────────── */
+function tick(){
+  if(!S.playing) return;
+  if(S.pending){ const p=S.pending; S.pending=null; p(); S.timer=setTimeout(tick,540/S.speed); return; }
+  if(S.idx>=S.steps.length){ pause(); return; }
+  const d=exec(S.steps[S.idx++])||350;
+  S.n.ms+=d; refreshMetrics();
+  if(!S.playing) return;
+  S.timer=setTimeout(tick, d/S.speed);
+}
+function stepOnce(){
+  if(S.pending){ const p=S.pending; S.pending=null; p(); return; }
+  if(S.idx>=S.steps.length) return;
+  S.n.ms+=exec(S.steps[S.idx++])||350; refreshMetrics();
+}
+function play(){
+  if(S.awaiting){ sendCompose(); return; }
+  if(S.idx>=S.steps.length) return;
+  S.playing=true; tick();
+}
+function pause(){ S.playing=false; clearTimeout(S.timer); }
+
+/* ── 入力欄 ───────────────────────────── */
+function setCompose(text,armed){
+  const c=$('cbox');
+  if(text){ c.textContent=text; c.classList.remove('empty'); }
+  else { c.textContent='Agent が処理中です…'; c.classList.add('empty'); }
+  c.classList.toggle('armed',!!armed);
+  $('bSend').disabled=!armed;
+}
+function sendCompose(){
+  if($('bSend').disabled) return;
+  const txt=$('cbox').textContent;
+  const m=el('div','msg user');
+  m.appendChild(el('div','ic','You')); m.appendChild(el('div','bub',fmt(txt)));
+  push('chatBody', m);
+  $('awaitTag').style.display='none'; setCompose(null,false);
+  if(S.awaiting&&S.awaiting.type==='await'){ S.n.hum++; refreshMetrics(); }
+  S.awaiting=null; play();
+}
+
+/* ── 起動・切替 ───────────────────────── */
+function loadScenario(key){
+  if(S) pause();
+  const scn=SCENARIOS[key];
+  S=newState(scn);
+  document.querySelectorAll('#tabs .tab').forEach(b=>b.classList.toggle('on', b.dataset.k===key));
+  ['chatBody','pPlan','pThink','pTool','pFact','pGuard'].forEach(id=>$(id).innerHTML='');
+  $('pPlan').appendChild(el('div','empty-note','依頼を送信すると<br>Agent がタスクを分解します'));
+  $('pThink').appendChild(el('div','empty-note','Agent の内部推論と達成ポイント'));
+  $('pTool').appendChild(el('div','empty-note','外部システムへのアクセス履歴'));
+  $('pFact').appendChild(el('div','empty-note','確定した事実'));
+  $('pGuard').appendChild(el('div','empty-note','権限境界と安全制御'));
+  ['cPlan','cThink','cTool','cFact','cGuard'].forEach(id=>$(id).textContent = id==='cPlan'?'0/0':'0');
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('hot'));
+  showEvid('pTool');
+  $('agName').textContent=scn.agent;
+  $('agSub').textContent='待機中';
+  setPhase(null);
+  narrate('⏸','待機中','');
+  S.awaiting={type:'await'}; S.n.hum=-1;
+  $('awaitTag').style.display='none';
+  setCompose(scn.prompt,true);
+  refreshMetrics();
+}
+
+function boot(){
+  Object.entries(SCENARIOS).forEach(([k,v])=>{
+    const b=el('button','tab',v.tab); b.dataset.k=k; b.onclick=()=>loadScenario(k); $('tabs').appendChild(b);
+  });
+  document.querySelectorAll('.evtab').forEach(b=>b.onclick=()=>showEvid(b.dataset.p));
+  $('bSend').onclick=sendCompose;
+  /* 画面上にコントロールは出さない。プレゼン中はキーボードで操作する。 */
+  document.addEventListener('keydown',e=>{
+    if(e.target.isContentEditable) return;
+    if(e.code==='Space'){ e.preventDefault(); S.playing?pause():play(); }
+    else if(e.code==='ArrowRight'){ e.preventDefault(); pause(); S.awaiting?sendCompose():stepOnce(); }
+    else if(e.key==='r'||e.key==='R'){ loadScenario(document.querySelector('#tabs .tab.on').dataset.k); }
+    else if(e.key==='s'||e.key==='S'){
+      S.speed=SPEEDS[(SPEEDS.indexOf(S.speed)+1)%SPEEDS.length];
+      narrate('⚙','再生速度 '+S.speed+'×','');
+    }
+  });
+  loadScenario(Object.keys(SCENARIOS)[0]);
+}
+/* ══════════════════════════════════════════════════════════
+   シナリオ定義
+   ══════════════════════════════════════════════════════════ */
+const SCENARIOS = {};
+
+SCENARIOS.expense = {
+  tab:'経費精算',
+  agent:'業務アシスタント Agent',
+  prompt:'先月の経費申請をしてください。',
+  steps:[
+
+  /* ── 依頼の分解 ─────────────────── */
+  {type:'phase', v:'PLAN'},
+  {type:'typing'},
+  {type:'chat', role:'agent', text:'承知しました。まず何をすべきか分解します。'},
+  {type:'think', kind:'plan', text:'曖昧な点が3つある。「先月」の定義、対象範囲、そして提出まで自動でよいか。調べて埋められるものは自分で解消し、人間の判断が要る点だけ後で聞く。'},
+  {type:'plan', op:'set', items:[
+    {id:'t1', label:'対象期間を特定する'},
+    {id:'t2', label:'経費履歴と領収書を突合する'},
+    {id:'t3', label:'費目コードを判定する'},
+    {id:'t4', label:'Concur でレポートを作成する'},
+    {id:'t5', label:'提出前にユーザー確認を得る'},
+    {id:'t6', label:'提出する'},
+  ]},
+  {type:'guard', level:'info', text:'権限：**参照系は自動 / 更新系は下書きまで / 提出は要承認**'},
+
+  /* ── 「先月」の解釈と軌道修正 ────── */
+  {type:'phase', v:'ACT', narr:'対象期間を特定しています'},
+  {type:'plan', op:'status', id:'t1', v:'running'},
+  {type:'tool', name:'calendar.get_context', args:'user="田中健太"', ms:340, status:'ok',
+   result:'today = 2026-08-28（金）/ 営業本部 第二営業部'},
+  {type:'think', kind:'observe', text:'素直に読めば「先月」は 2026年7月1日〜7月31日。仮置きして進む。'},
+  {type:'phase', v:'REFLECT'},
+  {type:'think', kind:'verify', text:'ただし対象月は、利用日基準か精算締め基準かで中身が変わる。先に規程を読む。'},
+  {type:'tool', name:'policy_db.read', args:'doc="経費精算規程", section="第4条"', ms:430, status:'ok',
+   result:'「利用日の属する月の翌月10日までに申請すること。締切超過分は翌月に繰り越す」'},
+  {type:'think', kind:'correct', head:'「7月分だけ」では、繰り越された経費が漏れます',
+   text:'7月分の締切は8月10日で既に経過している。「7月1日〜31日」だけを対象にすると、6月利用で7月に繰り越された分が漏れる。対象を「利用日 7/31 以前の未申請すべて」に再定義する。'},
+  {type:'plan', op:'label', id:'t1', label:'対象期間を特定する（利用日≤7/31 の未申請すべて）'},
+  {type:'tool', name:'expense_db.query', args:'employee="田中健太", status="未申請", used_on<=2026-07-31', ms:620, status:'ok',
+   result:'9件 / ¥87,420 / 2026-06-27 〜 2026-07-30'},
+  {type:'think', kind:'observe', text:'6月27日利用の1件が繰り越されていた。最初の解釈のままなら漏れていた。'},
+  {type:'mile', text:'対象期間を確定 — 未申請 **9件 / ¥87,420**（繰越1件を含む）',
+   narr:'対象期間を確定しました'},
+  {type:'fact', title:'対象経費', text:'未申請 9件 / ¥87,420（6/27〜7/30）', tone:'key'},
+  {type:'plan', op:'status', id:'t1', v:'done'},
+
+  /* ── 証憑が足りない ──────────────── */
+  {type:'phase', v:'ACT', narr:'経費に対応する領収書を突き合わせています'},
+  {type:'plan', op:'status', id:'t2', v:'running'},
+  {type:'tool', name:'receipt_store.match', args:'expense_ids=[9件]', ms:820, status:'warn',
+   result:'7件 一致 / 2件 未検出\nE-0312（タクシー ¥3,180）, E-0318（会食 ¥42,000）'},
+  {type:'think', kind:'hypo', text:'代替ソースの候補は2つ。法人カードの利用明細と、メール添付の電子領収書。順に当たる。'},
+  {type:'plan', op:'insert', after:'t2', item:{id:'t2b', label:'未検出2件を代替ソースから探索する', sub:true}},
+  {type:'plan', op:'status', id:'t2b', v:'running'},
+  {type:'tool', name:'corp_card.statement', args:'month="2026-07"', ms:560, status:'ok',
+   result:'7/14「日本交通 ¥3,180」が金額・日付とも完全一致。電子領収書リンクあり → E-0312 に紐付け'},
+  {type:'tool', name:'mail_archive.search', args:'q="領収書 会食", period="2026-07"', ms:700, status:'warn',
+   result:'4件ヒット / ¥42,000 と一致するものなし\n最も近いもの: 7-22「¥38,500」'},
+  {type:'phase', v:'REFLECT'},
+  {type:'think', kind:'correct', head:'金額が近いだけで領収書を紐付けるのは不適切です',
+   text:'最も近い候補でも金額が ¥3,500 違い、日付も2日ずれている。経理証憑を推測で埋めるわけにはいかない。E-0318 の自動突合は断念し、人間に確認する。ただしこの1件で全体は止めない。'},
+  {type:'guard', level:'block', head:'証憑のない経費は Agent の判断だけでは申請できません',
+   text:'証憑なしの申請は規程違反にあたります。E-0318 を保留キューに追加しました。'},
+
+  /* ── 私用の疑い ─────────────────── */
+  {type:'phase', v:'THINK'},
+  {type:'think', kind:'verify', text:'残り8件も検算する。E-0305「書籍購入 ¥4,800 / 7-08」は用途メモが空欄で、支払も個人カードだ。'},
+  {type:'tool', name:'calendar.search', args:'user="田中健太", date="2026-07-08"', ms:380, status:'warn',
+   result:'当日は「終日 有給休暇」。業務関連の予定は登録なし'},
+  {type:'think', kind:'decide', text:'有給休暇日の個人カード決済で用途も空欄。私用の可能性が高いが、業務書籍を休暇中に買うこともあり得る。Agent が勝手に除外してよい判断ではない。'},
+  {type:'guard', level:'block', head:'経費の除外は、本人の意図確認なしには決められません',
+   text:'E-0305 を保留キューに追加しました（保留 2件）。'},
+  {type:'mile', text:'自動処理できる確定分を切り分け — **7件 / ¥40,620**（保留2件は人間に確認）',
+   narr:'確定分7件と保留2件に切り分けました'},
+  {type:'plan', op:'status', id:'t2', v:'warn', tag:'2件 保留'},
+  {type:'plan', op:'status', id:'t2b', v:'warn'},
+
+  /* ── 分類器を疑う ───────────────── */
+  {type:'phase', v:'ACT', narr:'費目コードを判定しています'},
+  {type:'plan', op:'status', id:'t3', v:'running'},
+  {type:'tool', name:'expense_coder.classify', args:'entries=[7件]', ms:880, status:'ok',
+   result:'T-101 旅費交通費 ×4 / M-201 会議費 ×2 / S-310 消耗品費 ×1'},
+  {type:'think', kind:'verify', text:'分類器の出力をそのまま信用しない。会議費と交際費の境界は誤りやすく、税務上の扱いも変わる。'},
+  {type:'tool', name:'policy_db.read', args:'doc="経費精算規程", section="第12条"', ms:420, status:'ok',
+   result:'「社外者を含む飲食で、1人あたり5,000円を超える場合は交際費（E-401）とする」'},
+  {type:'tool', name:'expense_db.get_detail', args:'id="E-0321"', ms:340, status:'ok',
+   result:'会食 ¥33,000 / 参加6名（社内2・社外4）→ 1人あたり ¥5,500'},
+  {type:'think', kind:'correct', head:'自動分類の誤りを検出。会議費ではなく交際費が正しい',
+   text:'E-0321 は社外者を含み、1人あたり ¥5,500 で 5,000円を超えている。M-201（会議費）ではなく E-401（交際費）に修正する。'},
+  {type:'think', kind:'verify', text:'もう1件の E-0309 は社内のみ・1人あたり ¥2,200。こちらは M-201 のままで正しい。2件を一律に直さなくてよかった。'},
+  {type:'mile', text:'費目コードを確定 — 1件を **交際費に修正**（T-101×4 / E-401×1 / M-201×1 / S-310×1）',
+   narr:'費目コードを確定しました'},
+  {type:'guard', level:'warn', text:'交際費は税務上の扱いが異なるため、承認依頼時にユーザーへ明示します。'},
+  {type:'plan', op:'status', id:'t3', v:'done'},
+
+  /* ── システムに弾かれる ──────────── */
+  {type:'phase', v:'ACT', narr:'Concur にレポートを作成しています'},
+  {type:'guard', level:'warn', text:'ここから**更新系の操作**です。作成・編集は自動、提出はユーザー承認が必要。'},
+  {type:'plan', op:'status', id:'t4', v:'running'},
+  {type:'tool', name:'concur.create_report', args:'title="2026年7月度 経費精算"', ms:760, status:'ok',
+   result:'REPORT-2026-07-0442 を作成 / 7件 ¥40,620 を登録'},
+  {type:'tool', name:'concur.validate', args:'report=…0442', ms:620, status:'warn',
+   result:'⚠️ 「E-401 交際費は参加者名簿の添付が必須です」'},
+  {type:'think', kind:'hypo', text:'規程は読んだが、システム側の必須項目までは把握していなかった。参加者6名はカレンダーの招待から取れるはずだ。'},
+  {type:'tool', name:'calendar.get_event', args:'date="2026-07-22", q="会食"', ms:480, status:'ok',
+   result:'参加者6名の氏名・会社名・役職を取得 → 名簿として添付'},
+  {type:'tool', name:'concur.validate', args:'report=…0442', ms:600, status:'ok',
+   result:'✅ エラー・警告なし。提出可能な状態です'},
+  {type:'mile', text:'下書きが完成 — **REPORT-2026-07-0442**（バリデーション通過）',
+   narr:'下書きが完成しました'},
+  {type:'plan', op:'status', id:'t4', v:'done'},
+
+  /* ── 人間に確認する ─────────────── */
+  {type:'phase', v:'HUMAN'},
+  {type:'plan', op:'status', id:'t5', v:'running'},
+  {type:'guard', level:'block', head:'提出は不可逆。あなたの承認なしには実行しません',
+   text:'ここで処理を停止し、確認を求めます。'},
+  {type:'typing', d:1600},
+  {type:'chat', role:'agent', text:'下書きが完成しました。提出前に確認をお願いします。\n---**■ 作成した申請**\nREPORT-2026-07-0442 ／ 7件 ／ 合計 ¥40,620\n---**■ 確認していただきたいこと（2件）**\n\n__① E-0318 会食 ¥42,000（7/20）__\n領収書が見つかりませんでした。法人カード明細もメール添付も探しましたが、金額の合うものがありません。心当たりはありますか？\n\n__② E-0305 書籍購入 ¥4,800（7/08）__\n当日は有給休暇で、個人カード払い・用途メモが空欄でした。業務経費でしょうか？\n---**■ お伝えしておくこと**\nE-0321 の会食は1人あたり ¥5,500 で5,000円を超えるため、会議費ではなく__交際費__として計上しています。'},
+  {type:'await', label:'提出の可否を確認しています', narr:'ここで停止します。あなたが承認するまで提出しません',
+   reply:'①は紙の領収書が手元にあります。後で私がスキャンして追加するので、今回は外してください。②は私用でした、除外でお願いします。この2件を除いて提出してOKです。'},
+
+  /* ── 提出 ───────────────────────── */
+  {type:'phase', v:'THINK'},
+  {type:'think', kind:'observe', text:'保留2件が解決した。①は本人が別途対応、②は除外が確定。ただし①は放置すると忘れるので、注記を残して完了報告でも触れる。'},
+  {type:'plan', op:'status', id:'t2', v:'done', tag:'解決'},
+  {type:'plan', op:'status', id:'t2b', v:'done'},
+  {type:'phase', v:'ACT'},
+  {type:'tool', name:'expense_db.mark', args:'E-0305, status="対象外（私用）"', ms:400, status:'ok',
+   result:'ステータスを更新 / E-0318 には「証憑取得後に別途申請」と注記'},
+  {type:'guard', level:'ok', text:'ユーザーの明示的な承認を取得 → **提出権限を解放**します。'},
+  {type:'plan', op:'status', id:'t5', v:'done'},
+  {type:'plan', op:'status', id:'t6', v:'running'},
+  {type:'tool', name:'concur.submit', args:'report=REPORT-2026-07-0442', ms:1200, status:'ok',
+   result:'提出完了 / 承認ルート: 佐藤 部長 → 経理部 / 想定支払日 2026-09-15'},
+  {type:'plan', op:'status', id:'t6', v:'done'},
+  {type:'mile', text:'提出完了 — **REPORT-2026-07-0442**（7件 / ¥40,620）', narr:'提出が完了しました'},
+
+  {type:'phase', v:'DONE'},
+  {type:'typing', d:1500},
+  {type:'chat', role:'agent', text:'提出が完了しました。\n---REPORT-2026-07-0442 ／ 7件 ／ ¥40,620\n承認ルート: 佐藤 部長 → 経理部\n想定支払日: 2026年9月15日\n---途中で2点、当初の想定を修正しています。\n・6月利用で7月に繰り越されていた1件を追加（当初の「7月分だけ」では漏れていました）\n・会食1件を会議費→交際費に修正\n---**残っている作業が1件あります。**\nE-0318（会食 ¥42,000）の領収書スキャンです。次回の申請期限は__9月10日__です。前日にリマインドを設定しましょうか？'},
+]};
+
+SCENARIOS.strategy = {
+  tab:'中期経営計画',
+  agent:'経営企画アシスタント Agent',
+  prompt:'次期の中期経営計画について考えてください。',
+  steps:[
+
+  /* ── 書かれていないことを洗い出す ── */
+  {type:'phase', v:'PLAN'},
+  {type:'typing'},
+  {type:'chat', role:'agent', text:'承知しました。まず、この依頼に何が書かれていないかを整理します。'},
+  {type:'think', kind:'observe', text:'依頼が極めて抽象的だ。対象期間、スコープ、成果物の形式、期限——どれも指定されていない。'},
+  {type:'think', kind:'decide', text:'全部を聞き返すのは簡単だが、それでは価値がない。社内文書から推定できる前提は自分で埋め、判断が割れる論点だけ後で持ち帰る。'},
+  {type:'plan', op:'set', items:[
+    {id:'s1', label:'依頼の前提を推定・定義する'},
+    {id:'s2', label:'現状（社内実績・現行中計）を分析する'},
+    {id:'s3', label:'外部環境を調査する'},
+    {id:'s4', label:'戦略オプションを立案し検証する'},
+    {id:'s5', label:'骨子ドラフトを作成する'},
+    {id:'s6', label:'レビューを依頼する'},
+  ]},
+  {type:'phase', v:'ACT'},
+  {type:'plan', op:'status', id:'s1', v:'running'},
+  {type:'tool', name:'doc_store.read', args:'doc="中期経営計画 2024-2026"', ms:820, status:'ok',
+   result:'対象期間 FY2024-FY2026。最終年度は今期'},
+  {type:'tool', name:'calendar.search', args:'q="中計", range="2026-09〜2027-03"', ms:480, status:'ok',
+   result:'12-18 取締役会「次期中計 骨子審議」'},
+  {type:'think', kind:'decide', text:'現行中計は今期が最終年度。次期は FY2027〜FY2029 の3か年。そして12月の取締役会に「骨子審議」がある以上、求められているのは完成版の計画書ではなく骨子だ。期限もここから逆算できる。'},
+  {type:'mile', text:'前提を推定 — **FY2027-FY2029 / 取締役会向けの骨子 / 12月18日から逆算**',
+   narr:'依頼に書かれていない前提を、自力で推定しました'},
+  {type:'guard', level:'warn', text:'これは Agent による**推定**です。ドラフト冒頭に明記し、最終確認をユーザーに求めます。'},
+  {type:'plan', op:'status', id:'s1', v:'done'},
+
+  /* ── 現状を突き合わせる ─────────── */
+  {type:'phase', v:'ACT', narr:'現行中計の達成状況と事業の実力を突き合わせています'},
+  {type:'plan', op:'status', id:'s2', v:'running'},
+  {type:'tool', name:'bi_dashboard.query', args:'metric="中計KPI進捗", fy="FY2026"', ms:940, status:'warn',
+   result:'売上高 683億（計画720億）\n営業利益率 6.2%（計画8.0%）❌\n海外売上比率 18%（計画25%）❌\n保守サービス 71億（計画60億）✅'},
+  {type:'think', kind:'observe', text:'3本柱のうち達成できたのは保守サービスだけ。利益率は計画から1.8pt乖離している。'},
+  {type:'think', kind:'decide', text:'次期を現行の延長で書くのは危険だ。なぜ保守だけが超過したのか、構造を先に押さえる。'},
+  {type:'think', kind:'plan', text:'収益構造・受注動向・人員リソースの3方向を、それぞれ別のサブエージェントで並列に見る。'},
+  {type:'par-open', lanes:['A: 事業別P/L','B: 顧客・受注動向','C: 人員リソース']},
+  {type:'par-step', lane:0, name:'erp.query(事業別PL, 5年)', ms:920,
+   result:'ポンプ: CAGR **+1.2%** / 利益率 4.1%'},
+  {type:'par-step', lane:1, name:'crm.query(受注動向)', ms:860,
+   result:'国内**新規**受注が3年連続減'},
+  {type:'par-step', lane:2, name:'hr.query(技術者構成)', ms:800,
+   result:'保守技術者 平均48.2歳。5年で**22%が定年**'},
+  {type:'par-step', lane:0, name:'erp.query(保守サービスPL)', ms:820,
+   result:'保守: CAGR **+28%** / 利益率 **19.5%**'},
+  {type:'par-step', lane:1, name:'crm.query(契約継続率)', ms:760,
+   result:'保守契約の継続率 **94%**'},
+  {type:'par-step', lane:2, name:'hr.query(デジタル人材)', ms:700,
+   result:'ソフト／データ人材は全社 **11名**'},
+  {type:'par-close'},
+  {type:'phase', v:'OBSERVE'},
+  {type:'think', kind:'observe', text:'3レーンの結果が一つの絵になる。主力のポンプ本体は成長+1.2%・利益率4.1%で完全に成熟。保守は+28%・19.5%。稼ぐ力の重心はすでに移っている。'},
+  {type:'mile', text:'事業構造を把握 — ポンプ本体は成熟、**保守だけが桁違いに良い**',
+   narr:'稼ぐ力の重心がすでに移っていることが分かりました'},
+  {type:'fact', title:'制約条件', text:'保守技術者は5年で22%が定年 / デジタル人材は全社11名'},
+  {type:'plan', op:'status', id:'s2', v:'done'},
+
+  /* ── 権限の壁 ───────────────────── */
+  {type:'phase', v:'THINK'},
+  {type:'plan', op:'status', id:'s3', v:'running'},
+  {type:'think', kind:'hypo', text:'社内データだけでは「当社が悪い」のか「市場全体がそうなのか」を区別できない。外部データで裏を取る。'},
+  {type:'tool', name:'market_db.query', args:'"産業用ポンプ 国内市場規模 2026-2032"', ms:800, status:'err',
+   result:'ACCESS DENIED — 外部有料データベースへの接続権限がありません'},
+  {type:'phase', v:'REFLECT'},
+  {type:'guard', level:'block', head:'外部有料DBへのアクセス権限がありません',
+   text:'権限を要求して待つのではなく、公開情報で代替できないかを先に検討します。'},
+  {type:'think', kind:'correct', head:'権限を待たず、公開情報3経路で代替します',
+   text:'業界団体の公開統計と競合各社のIR資料で代替する。精度は落ちるが、骨子の議論には十分な水準に届く。'},
+  {type:'plan', op:'insert', after:'s3', item:{id:'s3b', label:'公開情報で市場データを代替取得する', sub:true}},
+  {type:'phase', v:'ACT'},
+  {type:'tool', name:'web_search', args:'"日本産業機械工業会 ポンプ 出荷統計"', ms:1000, status:'ok',
+   result:'公開統計3件を取得 → 国内市場は CAGR +0.8%（横ばい）'},
+  {type:'tool', name:'ir_fetch', args:'competitors=["A社","B社","C社"]', ms:1150, status:'ok',
+   result:'3社とも成長ドライバーは「アフターサービス／リカーリング収益」\nA社のサービス売上比率 34%（当社 10.4%）'},
+  {type:'think', kind:'observe', text:'主力の低成長は当社固有の問題ではなく、市場そのものが伸びていない。そして競合は3社ともサービス化に移行済みで、当社だけが出遅れている。'},
+  {type:'mile', text:'外部環境を把握 — **成長を市場には期待できない**／競合はサービス化済み',
+   narr:'成長を市場に期待できないことが確定しました'},
+  {type:'plan', op:'status', id:'s3', v:'done', tag:'代替ソース'},
+  {type:'plan', op:'status', id:'s3b', v:'done'},
+
+  /* ── 仮説を立て、棄却する ────────── */
+  {type:'phase', v:'PLAN'},
+  {type:'plan', op:'status', id:'s4', v:'running'},
+  {type:'think', kind:'hypo', text:'仮説α「ポンプ事業を軸に据えたまま、未達だった海外展開を再加速する」。現行路線の継続案として、まずこれを検証する。'},
+  {type:'fact', title:'仮説α', text:'海外展開の再加速で成長を取り戻す'},
+  {type:'tool', name:'erp.query', args:'海外事業 投資対効果, 5年', ms:880, status:'warn',
+   result:'累計投資 48億 / 累計営業損益 **−12億**'},
+  {type:'tool', name:'doc_store.read', args:'doc="東南アジア事業 撤退検討メモ"', ms:640, status:'ok',
+   result:'「現地は価格競争が激しく、当社の高価格帯製品は仕様過剰と評価される」'},
+  {type:'think', kind:'correct', head:'仮説αを棄却。現行中計の失敗をなぞる案です',
+   text:'5年で48億を投じて累損12億、撤退検討メモまで書かれている。市場も横ばい。「再加速」の根拠が一つも見つからない。前提から組み直す。'},
+  {type:'fact-revoke', i:-1},
+
+  /* ── 勝ち筋と、その穴 ───────────── */
+  {type:'think', kind:'hypo', text:'仮説β「唯一伸びている保守サービスを主軸に据え、売り切り型からリカーリング型へ構造転換する」。'},
+  {type:'tool', name:'erp.query', args:'保守サービス カバレッジ分析', ms:900, status:'ok',
+   result:'国内の当社製設備 稼働 **約12,000台**\nうち保守契約 3,900台（カバー率 **32%**）'},
+  {type:'think', kind:'observe', text:'これが決定的なデータだ。すでに12,000台が動いていて、保守契約はその32%にしか入っていない。残りの68%は、新規顧客を取らなくても手が届く収益源として既に存在している。'},
+  {type:'tool', name:'erp.simulate', args:'保守カバー率 32%→55%, 3年', ms:1100, status:'ok',
+   result:'保守売上 71億 → **128億**\n全社営業利益率 6.2% → **9.4%**'},
+  {type:'think', kind:'decide', text:'仮説βを採用する。カバー率を3年で55%まで上げれば、現行中計が届かなかった8%を超える。'},
+  {type:'phase', v:'REFLECT', narr:'採用した仮説に穴がないか、前の分析結果を思い出します'},
+  {type:'think', kind:'recall', text:'ただし並列分析Cを思い出す必要がある。保守技術者は5年で22%が定年。カバー率を32%→55%にするとは、保守対象を約1.7倍にするということだ。'},
+  {type:'think', kind:'correct', head:'仮説βは単独では成立しない。人が足りません',
+   text:'人が減るのに担当台数を1.7倍にはできない。遠隔監視・予知保全によるデジタル化での省人化を、単独施策ではなく必須のセットとして組み込む。'},
+  {type:'mile', text:'戦略の核が固まる — **保守サービスの主軸化 ＋ デジタル化による省人化**（分離不可）',
+   narr:'戦略の核が固まりました'},
+
+  /* ── 決めないという判断 ─────────── */
+  {type:'phase', v:'THINK'},
+  {type:'think', kind:'plan', text:'残る論点は3つ。ポンプ事業の位置づけ、海外事業の扱い、デジタル人材の確保。'},
+  {type:'tool', name:'erp.query', args:'ポンプ事業 設置ベース推移', ms:700, status:'ok',
+   result:'国内設置台数は年 +300〜400台 で増加継続（売上は横ばいでも台数は積み上がる）'},
+  {type:'think', kind:'decide', text:'ポンプ事業は「成長事業」ではなく、保守事業の顧客基盤を作り続ける戦略的装置と再定義する。評価指標も売上成長率から設置台数と単体収益性へ変える。縮小ではなく役割の再定義だ。'},
+  {type:'guard', level:'block', head:'事業の撤退・縮小は Agent の権限を超えます',
+   text:'海外事業は縮小が合理的に見えますが、結論は出さず「論点」として提示し、判断材料のみ添付します。'},
+  {type:'guard', level:'warn', text:'M&A候補の具体名は閲覧権限外の情報です。選択肢の提示にとどめます。'},
+  {type:'plan', op:'status', id:'s4', v:'done'},
+  {type:'phase', v:'ACT'},
+  {type:'plan', op:'status', id:'s5', v:'running'},
+  {type:'tool', name:'doc_gen.render', args:'title="中期経営計画 FY2027-FY2029 骨子ドラフト v0.1"', ms:1300, status:'ok',
+   result:'12ページ / 図表5点を生成（前提・現行中計の総括・環境認識・基本方針・重点戦略・数値目標・未解決の論点）'},
+  {type:'mile', text:'骨子ドラフト v0.1 が完成 — **12ページ / 未解決の論点3件つき**',
+   narr:'骨子ドラフトが完成しました'},
+  {type:'plan', op:'status', id:'s5', v:'done'},
+
+  /* ── レビュー依頼 ───────────────── */
+  {type:'phase', v:'HUMAN'},
+  {type:'plan', op:'status', id:'s6', v:'running'},
+  {type:'typing', d:1800},
+  {type:'chat', role:'agent', text:'骨子ドラフト v0.1 ができました。**先に前提の確認をお願いします。**\n---**■ 私が推定した前提（未確認）**\n期間 FY2027-FY2029 ／ 12月18日 取締役会向けの骨子 ／ スコープは全社\n---**■ 基本方針（案）**\n__「作って売る」から「動かし続ける」へ__\n\n国内ポンプ市場は CAGR+0.8% で横ばい。製品販売の成長は市場に期待できません。一方、すでに国内で12,000台が稼働し、保守契約はその32%にとどまっています。成長余地は社外ではなく__足元__にあります。\n---**■ 重点戦略3本柱**\n① 保守サービスの主軸化（カバー率 32%→55%）\n② 遠隔監視・予知保全によるデジタル化 ※①と不可分\n③ ポンプ事業の役割再定義（成長事業→顧客基盤形成）\n---**■ 数値目標（FY2029）**\n売上 750億 ／ 営業利益率 **9.4%** ／ リカーリング比率 30%\n---**■ 私では判断できなかった論点（3件）**\n\n__① 海外事業の扱い__\n累計投資48億・累損12億。縮小が合理的に見えますが、撤退判断は経営マターのため結論は出していません。判断材料を添付しています。\n\n__② デジタル人材の確保手段__\n現在11名。自前採用のみでは3年では届きません。投資枠の前提をいただければ絞り込めます。\n\n__③ 上記の前提3点__\nこれが違うと全体が変わります。'},
+  {type:'await', label:'前提と論点の確認を待っています', narr:'推定した前提と、決められなかった論点3件を返しました',
+   reply:'前提はその通りで正しいです。海外事業は縮小の方向で社内では議論していました。この線で第2稿をお願いします。'},
+
+  {type:'phase', v:'THINK'},
+  {type:'think', kind:'observe', text:'前提3点が承認された。推定は正しかった。海外事業は縮小方針が示されたので論点①も解消。第2稿ではリソースの振り替え先まで踏み込める。'},
+  {type:'guard', level:'ok', text:'前提が確定しました。以降は「推定」の注記を外し、確定前提として記述します。'},
+  {type:'plan', op:'status', id:'s6', v:'done'},
+  {type:'phase', v:'DONE'},
+  {type:'typing', d:1500},
+  {type:'chat', role:'agent', text:'承知しました。第2稿では以下を反映します。\n\n・前提3点を確定事項として記述\n・海外事業を「縮小」前提とし、__浮いた経営資源を②のデジタル化投資に振り替える__絵を追加\n・論点は②デジタル人材の投資枠のみに絞る\n---作成には社内の投資計画データの参照が必要です。経営企画部の予算枠データへの閲覧権限をいただけますか？権限があれば、投資枠別に3パターンのシミュレーションまで作ります。'},
+]};
+
+boot();
+</script>
+</body>
+</html>
